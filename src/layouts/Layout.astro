@@ -93,8 +93,8 @@ const jsonLd = structuredData ? JSON.stringify(structuredData).replace(/</g, '\\
   <div class="ambient-glow" aria-hidden="true"></div>
   <div id="read-progress" class="read-progress"></div>
   <div class="container">
-    <header class="site-header">
-      <a href={homeUrl} class="logo">Lucid Hubble.</a>
+    <header class="site-header" transition:name="site-header">
+      <a href={homeUrl} class="logo" transition:name="site-logo">Lucid Hubble.</a>
       <nav class="nav-links">
         <a href={writingUrl} class={isWritingPage ? 'is-active' : undefined} aria-current={isWritingPage ? 'location' : undefined}>Writing</a>
         <a href={aboutUrl} class={isAboutPage ? 'is-active' : undefined} aria-current={isAboutPage ? 'page' : undefined} data-astro-prefetch>About</a>
@@ -109,7 +109,7 @@ const jsonLd = structuredData ? JSON.stringify(structuredData).replace(/</g, '\\
       </nav>
     </header>
 
-    <main>
+    <main class="site-main" transition:animate="fade">
       <slot />
     </main>
 

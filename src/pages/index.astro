@@ -10,6 +10,7 @@ const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
 ---
 
 <Layout title="Lucid Hubble">
+  <div class="home-shell">
   <section class="hero">
     <p class="hero-eyebrow mono-badge">Personal notes</p>
     <h1>Lucid Hubble</h1>
@@ -32,11 +33,16 @@ const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
       {sortedPosts.length === 0 ? (
         <p class="empty-state">目前还没有发布任何文章。</p>
       ) : (
-        sortedPosts.map((post) => {
+        sortedPosts.map((post, index) => {
           const { title, date, description, tags = [] } = post.data;
+          const stagger = Math.min(index, 8);
 
           return (
-            <article class="post-card" data-tags={tags.join(',')}>
+            <article
+              class="post-card"
+              data-tags={tags.join(',')}
+              style={`--stagger: ${stagger}`}
+            >
               <div class="post-meta">
                 <time datetime={date.toISOString()}>{formatPostDate(date)}</time>
                 {tags.length > 0 && (
@@ -71,6 +77,7 @@ const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
       )}
     </div>
   </section>
+  </div>
 </Layout>
 
 <script>

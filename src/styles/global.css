@@ -127,6 +127,24 @@ body {
     color var(--duration-slow) ease,
     border-color var(--duration-slow) ease;
   padding: 0 var(--space-page-x);
+  position: relative;
+}
+
+/* Fine paper grain — CSS only, no image asset */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 180px 180px;
+}
+
+html[data-theme="dark"] body::before {
+  opacity: 0.055;
 }
 
 ::selection {
@@ -158,6 +176,13 @@ button:focus-visible {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  position: relative;
+  z-index: 1;
+}
+
+.site-main {
+  flex: 1;
+  width: 100%;
 }
 
 /* -------------------------------------------------------------
@@ -165,12 +190,22 @@ button:focus-visible {
  * ------------------------------------------------------------- */
 
 .site-header {
-  padding: var(--space-8) 0 var(--space-6);
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  padding: var(--space-5) 0;
+  margin-left: calc(-1 * var(--space-page-x));
+  margin-right: calc(-1 * var(--space-page-x));
+  padding-left: var(--space-page-x);
+  padding-right: var(--space-page-x);
   display: flex;
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid hsl(var(--border));
   margin-bottom: var(--space-8);
+  background: hsl(var(--bg) / 0.86);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .site-header .logo {
@@ -353,11 +388,20 @@ html[data-theme="dark"] .theme-toggle .theme-icon-sun {
   white-space: nowrap;
 }
 
+.home-shell {
+  width: 100%;
+}
+
 .posts-list {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-  animation: fadeInUp var(--duration-enter) var(--ease-out);
+}
+
+.home-shell .post-card {
+  --stagger: 0;
+  animation: fadeInUp var(--duration-enter) var(--ease-out) both;
+  animation-delay: calc(var(--stagger) * 45ms);
 }
 
 .ambient-glow {
@@ -926,7 +970,13 @@ html[data-theme="light"] .ambient-glow,
     border-color var(--duration-normal) ease,
     transform var(--duration-normal) var(--ease-out),
     background-color var(--duration-normal) ease;
+  animation: fadeInUp var(--duration-enter) var(--ease-out) both;
 }
+
+.dimension-card:nth-child(1) { animation-delay: 40ms; }
+.dimension-card:nth-child(2) { animation-delay: 80ms; }
+.dimension-card:nth-child(3) { animation-delay: 120ms; }
+.dimension-card:nth-child(4) { animation-delay: 160ms; }
 
 .dimension-card:hover {
   border-color: hsla(var(--accent), 0.35);
@@ -977,7 +1027,16 @@ html[data-theme="light"] .ambient-glow,
   ::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
+    animation-delay: 0ms !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+
+  body::before {
+    display: none;
+  }
+
+  .home-shell .post-card {
+    animation: none;
   }
 }
