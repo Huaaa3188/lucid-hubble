@@ -12,6 +12,7 @@
     "verify": "npm run build && npm run check:dist"
   },
   "dependencies": {
+    "@lucide/astro": "^1.26.0",
     "astro": "^7.1.3"
   }
 }

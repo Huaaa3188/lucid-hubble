@@ -3,6 +3,7 @@
 import '../styles/global.css';
 import { ClientRouter } from 'astro:transitions';
 import { getSiteUrl } from '../lib/site';
+import Icon from '../components/Icon.astro';
 
 interface Props {
   title: string;
@@ -47,7 +48,6 @@ const jsonLd = structuredData ? JSON.stringify(structuredData).replace(/</g, '\\
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{title}</title>
   
-  <!-- 电影级跨页平滑转场机制 -->
   <ClientRouter />
   
   <!-- SEO Meta Tags -->
@@ -67,38 +67,25 @@ const jsonLd = structuredData ? JSON.stringify(structuredData).replace(/</g, '\\
   <link rel="alternate" type="application/rss+xml" title="Lucid Hubble" href={rssUrl}>
   {jsonLd && <script type="application/ld+json" set:html={jsonLd}></script>}
   
-  <!-- Favicon (Precision Line Monogram SVG) -->
+  <!-- Favicon (line monogram, no emoji) -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23171513'/><path d='M32 28 V72 H68' stroke='%23f4f2ec' stroke-width='7' stroke-linecap='round' stroke-linejoin='round' fill='none'/><circle cx='66' cy='30' r='5' fill='%23e26d46'/></svg>">
   
-  <!-- 立即检测暗黑模式并设置，防止页面出现闪烁 (FOUC) -->
+  <!-- Theme before paint: only data-theme + aria, never swap icon markup -->
   <script is:inline>
-    const sunSvgInline = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>';
-    const moonSvgInline = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>';
-
-    const syncThemeIcon = () => {
-      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-      const btn = document.getElementById('theme-toggle');
-      if (btn) {
-        btn.innerHTML = isDark ? sunSvgInline : moonSvgInline;
-        btn.setAttribute('aria-label', isDark ? '切换至亮色模式' : '切换至暗色模式');
-      }
-    };
-
     const applyTheme = () => {
       const savedTheme = localStorage.getItem('theme');
       const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      
-      if (savedTheme === 'dark' || (!savedTheme && systemPrefersDark)) {
-        document.documentElement.setAttribute('data-theme', 'dark');
-      } else {
-        document.documentElement.setAttribute('data-theme', 'light');
+      const theme = savedTheme === 'dark' || (!savedTheme && systemPrefersDark) ? 'dark' : 'light';
+
+      document.documentElement.setAttribute('data-theme', theme);
+
+      const btn = document.getElementById('theme-toggle');
+      if (btn) {
+        btn.setAttribute('aria-label', theme === 'dark' ? '切换至亮色模式' : '切换至暗色模式');
       }
-      syncThemeIcon();
     };
-    
-    // 首屏物理载入时立即应用，防闪烁
+
     applyTheme();
-    document.addEventListener('DOMContentLoaded', syncThemeIcon);
     document.addEventListener('astro:after-swap', applyTheme);
   </script>
 </head>
@@ -106,76 +93,60 @@ const jsonLd = structuredData ? JSON.stringify(structuredData).replace(/</g, '\\
   <div class="ambient-glow" aria-hidden="true"></div>
   <div id="read-progress" class="read-progress"></div>
   <div class="container">
-    <!-- Header -->
     <header class="site-header">
       <a href={homeUrl} class="logo">Lucid Hubble.</a>
       <nav class="nav-links">
         <a href={writingUrl} class={isWritingPage ? 'is-active' : undefined} aria-current={isWritingPage ? 'location' : undefined}>Writing</a>
         <a href={aboutUrl} class={isAboutPage ? 'is-active' : undefined} aria-current={isAboutPage ? 'page' : undefined} data-astro-prefetch>About</a>
-        <!-- Dark Mode Toggle Button -->
-        <button id="theme-toggle" class="theme-toggle" aria-label="切换暗黑模式">
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+        <button id="theme-toggle" type="button" class="theme-toggle" aria-label="切换暗黑模式">
+          <span class="theme-icon theme-icon-moon">
+            <Icon name="moon" size={20} />
+          </span>
+          <span class="theme-icon theme-icon-sun">
+            <Icon name="sun" size={20} />
+          </span>
         </button>
       </nav>
     </header>
 
-    <!-- Main Dynamic Content Slot -->
     <main>
       <slot />
     </main>
 
-    <!-- Footer -->
     <footer class="site-footer">
       <div>
         &copy; 2026 Lucid Hubble. 记录工程、工具与日常思考。
       </div>
       <div class="footer-socials">
         <a href={githubUrl} target="_blank" rel="noopener noreferrer" aria-label="GitHub">
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="footer-icon"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
+          <Icon name="github" class="footer-icon" />
         </a>
       </div>
     </footer>
   </div>
 
-  <!-- 客户端主题切换绑定与图标初始化逻辑 -->
   <script>
-    const sunSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>';
-    const moonSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>';
-
-    // 更新按钮状态图标
-    function updateToggleIcon() {
+    function syncThemeAria() {
       const themeToggleBtn = document.getElementById('theme-toggle');
       if (!themeToggleBtn) return;
-
-      const currentTheme = document.documentElement.getAttribute('data-theme');
-      
-      if (currentTheme === 'dark') {
-        themeToggleBtn.innerHTML = sunSvg;
-        themeToggleBtn.setAttribute('aria-label', '切换至亮色模式');
-      } else {
-        themeToggleBtn.innerHTML = moonSvg;
-        themeToggleBtn.setAttribute('aria-label', '切换至暗色模式');
-      }
-    }
-
-    // 绑定事件与初始化
-    function initThemeToggle() {
-      const themeToggleBtn = document.getElementById('theme-toggle');
-      if (themeToggleBtn) {
-        themeToggleBtn.removeEventListener('click', handleToggle);
-        themeToggleBtn.addEventListener('click', handleToggle);
-      }
-      updateToggleIcon();
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      themeToggleBtn.setAttribute('aria-label', isDark ? '切换至亮色模式' : '切换至暗色模式');
     }
 
     function handleToggle() {
       const currentTheme = document.documentElement.getAttribute('data-theme');
       const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-      
       document.documentElement.setAttribute('data-theme', newTheme);
       localStorage.setItem('theme', newTheme);
-      
-      updateToggleIcon();
+      syncThemeAria();
+    }
+
+    function initThemeToggle() {
+      const themeToggleBtn = document.getElementById('theme-toggle');
+      if (!themeToggleBtn) return;
+      themeToggleBtn.removeEventListener('click', handleToggle);
+      themeToggleBtn.addEventListener('click', handleToggle);
+      syncThemeAria();
     }
 
     function updateProgress() {
@@ -188,7 +159,6 @@ const jsonLd = structuredData ? JSON.stringify(structuredData).replace(/</g, '\\
       progressBar.style.width = `${scrollPercent}%`;
     }
 
-    // 阅读进度条更新逻辑（仅在文章详情页起效）
     function initProgressBar() {
       const progressBar = document.getElementById('read-progress');
       if (!progressBar) return;
@@ -205,7 +175,6 @@ const jsonLd = structuredData ? JSON.stringify(structuredData).replace(/</g, '\\
       updateProgress();
     }
 
-    // 适配 Astro View Transitions 的标准生命周期
     document.addEventListener('astro:page-load', () => {
       initThemeToggle();
       initProgressBar();

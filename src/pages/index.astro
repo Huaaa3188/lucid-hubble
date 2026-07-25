@@ -1,6 +1,7 @@
 ---
 // index.astro - 博客主页
 import Layout from '../layouts/Layout.astro';
+import Icon from '../components/Icon.astro';
 import { formatPostDate, getRenderablePosts } from '../lib/site';
 
 // 1. 获取要渲染的文章列表（生产环境自动过滤草稿）
@@ -56,7 +57,7 @@ const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
                   <h2>{title}</h2>
                   <p>{description}</p>
                 </div>
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="card-arrow"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg>
+                <Icon name="arrow-up-right" class="card-arrow" />
               </a>
             </article>
           );

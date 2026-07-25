@@ -3,13 +3,13 @@
  * ------------------------------------------------------------- */
 
 :root {
-  /* HSL Color Tokens - Light Palette (Soft Sand/Warm White) */
-  --bg: 36, 15%, 97%;          /* #f7f5f0 Warm White */
-  --fg: 0, 0%, 11%;            /* #1c1c1c Jet Black */
-  --fg-muted: 0, 0%, 40%;      /* #666666 Muted Gray */
-  --border: 36, 10%, 88%;      /* #e3dfd5 Fine Border Warm */
-  --accent: 24, 85%, 50%;      /* Rust Accent */
-  --code-bg: 36, 10%, 93%;     /* Code background */
+  /* HSL Color Tokens - Light Palette (Warm Alabaster / Fine Paper) */
+  --bg: 38, 14%, 92%;          /* #eeeae3 Warm Alabaster Paper, reduced brightness */
+  --fg: 30, 15%, 8%;           /* #191715 Deep Ink Black for sharp contrast */
+  --fg-muted: 30, 8%, 28%;     /* #403c37 Deep Muted Gray, legible & clear */
+  --border: 36, 12%, 82%;      /* #dcd6cb Distinct Warm Border */
+  --accent: 20, 80%, 42%;      /* Deep Rust Accent */
+  --code-bg: 38, 12%, 87%;     /* Warm Code Background Surface */
   
   --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   /* Body serif: stable reading stack */
@@ -211,9 +211,28 @@ button:focus-visible {
   background-color: hsla(var(--fg), 0.05);
 }
 
+.theme-toggle .theme-icon {
+  display: none;
+  line-height: 0;
+}
+
+/* Light (default): show moon. Dark: show sun. Pure CSS — no JS icon swap. */
+.theme-toggle .theme-icon-moon {
+  display: block;
+}
+
+html[data-theme="dark"] .theme-toggle .theme-icon-moon {
+  display: none;
+}
+
+html[data-theme="dark"] .theme-toggle .theme-icon-sun {
+  display: block;
+}
+
 .theme-toggle svg {
   width: 20px;
   height: 20px;
+  display: block;
 }
 
 /* -------------------------------------------------------------
@@ -432,8 +451,8 @@ button:focus-visible {
 .post-card-link p {
   color: hsl(var(--fg-muted));
   font-size: 0.95rem;
-  font-weight: 300;
-  line-height: 1.6;
+  font-weight: 400;
+  line-height: 1.65;
 }
 
 /* -------------------------------------------------------------
