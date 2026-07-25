@@ -830,14 +830,20 @@ html[data-theme="light"] .ambient-glow,
 }
 
 /* -------------------------------------------------------------
- * ABOUT PAGE STYLING
+ * ABOUT PAGE (second editorial surface)
  * ------------------------------------------------------------- */
 .about-container {
   animation: fadeInUp var(--duration-enter) var(--ease-out);
+  padding-bottom: var(--space-8);
 }
 
 .about-header {
-  margin-bottom: 3.5rem;
+  margin-bottom: var(--space-8);
+}
+
+.about-eyebrow {
+  display: inline-block;
+  margin-bottom: var(--space-4);
 }
 
 .about-header h1 {
@@ -848,56 +854,121 @@ html[data-theme="light"] .ambient-glow,
   letter-spacing: var(--tracking-tight);
   margin-bottom: var(--space-4);
   color: hsl(var(--fg));
+  text-wrap: balance;
 }
 
-.about-header p {
+.about-rule {
+  width: 3rem;
+  height: 2px;
+  background: hsl(var(--accent));
+  margin-bottom: var(--space-5);
+}
+
+.about-deck {
   font-family: var(--font-serif);
-  font-style: italic;
-  font-size: 1.15rem;
-  color: hsl(var(--accent));
-  line-height: 1.6;
+  font-size: var(--text-lg);
+  line-height: var(--leading-body);
+  color: hsl(var(--fg-muted));
+  max-width: 36rem;
 }
 
 .about-content {
   font-family: var(--font-serif);
-  font-size: 1.05rem;
+  font-size: var(--text-md);
   line-height: 1.85;
   color: hsl(var(--fg));
+  margin-bottom: var(--space-9);
 }
 
 .about-content p {
   margin-bottom: 1.8rem;
 }
 
-.about-content .last-p {
-  margin-bottom: 3.5rem;
+.about-content p:last-child {
+  margin-bottom: 0;
+}
+
+.about-content a {
+  color: hsl(var(--accent));
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+  transition: opacity var(--duration-fast) ease;
+}
+
+.about-content a:hover {
+  opacity: 0.85;
+}
+
+.about-principles {
+  margin-bottom: var(--space-8);
+}
+
+.about-principles-heading {
+  margin-bottom: var(--space-6);
 }
 
 .dimensions {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 2.5rem;
-  border-top: 1px dashed hsl(var(--border));
-  padding-top: 3rem;
-  margin-bottom: 5rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-5);
+  margin-bottom: 0;
+  border-top: none;
+  padding-top: 0;
+}
+
+.dimension-card {
+  padding: var(--space-5);
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-md);
+  background: hsl(var(--code-bg) / 0.35);
+  transition:
+    border-color var(--duration-normal) ease,
+    transform var(--duration-normal) var(--ease-out),
+    background-color var(--duration-normal) ease;
+}
+
+.dimension-card:hover {
+  border-color: hsla(var(--accent), 0.35);
+  background: hsl(var(--code-bg) / 0.55);
+  transform: translateY(-2px);
 }
 
 .dimension-card h3 {
   font-family: var(--font-sans);
-  font-size: 1.1rem;
-  letter-spacing: 0.05em;
+  font-size: var(--text-meta);
+  letter-spacing: 0.04em;
   font-weight: 600;
   color: hsl(var(--fg));
-  margin-bottom: 1rem;
+  margin-bottom: var(--space-3);
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 .dimension-card p {
-  font-size: 0.95rem;
-  line-height: 1.7;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
   color: hsl(var(--fg-muted));
+  margin: 0;
+}
+
+.about-footnote {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  letter-spacing: 0.04em;
+  line-height: var(--leading-body);
+  color: hsl(var(--fg-muted));
+  padding-top: var(--space-6);
+  border-top: 1px dashed hsl(var(--border));
+  margin: 0;
+}
+
+@media (max-width: 600px) {
+  .dimensions {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
