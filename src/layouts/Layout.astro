@@ -67,8 +67,8 @@ const jsonLd = structuredData ? JSON.stringify(structuredData).replace(/</g, '\\
   <link rel="alternate" type="application/rss+xml" title="Lucid Hubble" href={rssUrl}>
   {jsonLd && <script type="application/ld+json" set:html={jsonLd}></script>}
   
-  <!-- Favicon (Fallback Emoji SVG) -->
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><style>text{fill:%231c1c1c}@media(prefers-color-scheme:dark){text{fill:%23e5e5e5}}</style><text x=%2250%%22 y=%2255%%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-size=%2290%22 font-family=%22Georgia, serif%22 font-weight=%22bold%22>L</text></svg>">
+  <!-- Favicon (Precision Line Monogram SVG) -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23171513'/><path d='M32 28 V72 H68' stroke='%23f4f2ec' stroke-width='7' stroke-linecap='round' stroke-linejoin='round' fill='none'/><circle cx='66' cy='30' r='5' fill='%23e26d46'/></svg>">
   
   <!-- 立即检测暗黑模式并设置，防止页面出现闪烁 (FOUC) -->
   <script is:inline>
@@ -103,6 +103,7 @@ const jsonLd = structuredData ? JSON.stringify(structuredData).replace(/</g, '\\
   </script>
 </head>
 <body>
+  <div class="ambient-glow" aria-hidden="true"></div>
   <div id="read-progress" class="read-progress"></div>
   <div class="container">
     <!-- Header -->

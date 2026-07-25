@@ -12,6 +12,6 @@
     "verify": "npm run build && npm run check:dist"
   },
   "dependencies": {
-    "astro": "^6.3.8"
+    "astro": "^7.1.3"
   }
 }

@@ -16,6 +16,8 @@
   --font-serif: Georgia, Cambria, "Times New Roman", Times, serif;
   /* Display serif: logo / page titles / card titles (system book faces first) */
   --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  /* Mono stack for badges and meta */
+  --font-mono: "SF Mono", "Fira Code", "Roboto Mono", Consolas, monospace;
   
   --max-width: 700px;
 
@@ -261,12 +263,49 @@ button:focus-visible {
   animation: fadeInUp 1s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+.ambient-glow {
+  position: fixed;
+  top: -180px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 720px;
+  height: 480px;
+  background: radial-gradient(circle, rgba(226, 109, 70, 0.08) 0%, rgba(0, 0, 0, 0) 70%);
+  pointer-events: none;
+  z-index: -1;
+  filter: blur(80px);
+}
+
+[data-theme="light"] .ambient-glow {
+  background: radial-gradient(circle, rgba(226, 109, 70, 0.05) 0%, rgba(0, 0, 0, 0) 70%);
+}
+
+.mono-badge {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: hsl(var(--accent));
+}
+
 .post-card {
   color: inherit;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  transition: transform 0.2s ease;
+  padding: 1.25rem 1.5rem;
+  margin-left: -1.5rem;
+  margin-right: -1.5rem;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease, background-color 0.3s ease;
+}
+
+.post-card:hover {
+  border-color: hsl(var(--border));
+  background: hsl(var(--code-bg) / 0.4);
+  transform: translateY(-2px);
 }
 
 .post-card.is-filtered-out {
@@ -276,9 +315,31 @@ button:focus-visible {
 .post-card-link {
   color: inherit;
   display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  text-decoration: none;
+}
+
+.post-card-content {
+  display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  text-decoration: none;
+  flex: 1;
+}
+
+.post-card-link .card-arrow {
+  color: hsl(var(--fg-muted));
+  opacity: 0.4;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), color 0.3s ease, opacity 0.3s ease;
+  flex-shrink: 0;
+  margin-top: 0.35rem;
+}
+
+.post-card:hover .post-card-link .card-arrow {
+  transform: translate(3px, -3px);
+  color: hsl(var(--accent));
+  opacity: 1;
 }
 
 .empty-state {
