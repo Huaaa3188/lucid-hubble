@@ -4,27 +4,28 @@ import Layout from '../layouts/Layout.astro';
 import Icon from '../components/Icon.astro';
 import { formatPostDate, getRenderablePosts } from '../lib/site';
 
-// 1. 获取要渲染的文章列表（生产环境自动过滤草稿）
 const sortedPosts = await getRenderablePosts();
-
+const postCount = sortedPosts.length;
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
 ---
 
 <Layout title="Lucid Hubble">
-  <!-- Hero / 简介 -->
   <section class="hero">
+    <p class="hero-eyebrow mono-badge">Personal notes</p>
     <h1>Lucid Hubble</h1>
-    <p>服务端工程、工具折腾、读书与日常随笔。</p>
+    <div class="hero-rule" aria-hidden="true"></div>
+    <p class="hero-lede">服务端工程、工具折腾、读书与日常随笔。</p>
   </section>
 
-  <!-- 博客文章列表 -->
-  <section id="blog">
-    <h3 class="section-title">RECENT WRITINGS</h3>
-    
-    <!-- 极简标签过滤提示条 -->
+  <section id="blog" class="blog-section">
+    <div class="section-heading">
+      <h2 class="section-title">Recent writings</h2>
+      <span class="section-count">{postCount} {postCount === 1 ? 'post' : 'posts'}</span>
+    </div>
+
     <div id="filter-bar" class="filter-bar hidden">
       <span>正在检索分类: <strong id="active-tag"></strong></span>
-      <button id="clear-filter" class="clear-btn">清除检索</button>
+      <button id="clear-filter" type="button" class="clear-btn">清除检索</button>
     </div>
 
     <div id="posts-list" class="posts-list">
@@ -33,20 +34,25 @@ const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
       ) : (
         sortedPosts.map((post) => {
           const { title, date, description, tags = [] } = post.data;
-          
+
           return (
-            <article
-              class="post-card" 
-              data-tags={tags.join(',')}
-            >
+            <article class="post-card" data-tags={tags.join(',')}>
               <div class="post-meta">
                 <time datetime={date.toISOString()}>{formatPostDate(date)}</time>
                 {tags.length > 0 && (
                   <>
-                    <span>•</span>
+                    <span aria-hidden="true">·</span>
                     <div class="tag-list">
-                      {tags.map(tag => (
-                        <button type="button" class="tag-btn" data-tag={tag} aria-label={`按标签 ${tag} 筛选文章`}>#{tag}</button>
+                      {tags.map((tag) => (
+                        <button
+                          type="button"
+                          class="tag-btn"
+                          data-tag={tag}
+                          aria-label={`按标签 ${tag} 筛选文章`}
+                          aria-pressed="false"
+                        >
+                          #{tag}
+                        </button>
                       ))}
                     </div>
                   </>
@@ -54,7 +60,7 @@ const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
               </div>
               <a href={`${basePath}/post/${post.id}/`} class="post-card-link" data-astro-prefetch>
                 <div class="post-card-content">
-                  <h2>{title}</h2>
+                  <h3>{title}</h3>
                   <p>{description}</p>
                 </div>
                 <Icon name="arrow-up-right" class="card-arrow" />
@@ -65,7 +71,6 @@ const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
       )}
     </div>
   </section>
-
 </Layout>
 
 <script>
@@ -78,11 +83,21 @@ const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
     const activeTagEl = document.getElementById('active-tag');
     const clearFilterBtn = document.getElementById('clear-filter');
     const postCards = document.querySelectorAll('.post-card');
+    const tagButtons = blogSection.querySelectorAll('.tag-btn');
+
+    function setActiveTagButton(activeTag: string) {
+      tagButtons.forEach((btn) => {
+        const isActive = (btn.getAttribute('data-tag') || '') === activeTag && activeTag !== '';
+        btn.classList.toggle('is-active', isActive);
+        btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+      });
+    }
 
     function filterTag(tag: string) {
       if (!tag) {
         filterBar?.classList.add('hidden');
-        postCards.forEach(card => {
+        setActiveTagButton('');
+        postCards.forEach((card) => {
           card.classList.remove('is-filtered-out');
         });
         return;
@@ -90,8 +105,9 @@ const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
 
       filterBar?.classList.remove('hidden');
       if (activeTagEl) activeTagEl.textContent = `#${tag}`;
+      setActiveTagButton(tag);
 
-      postCards.forEach(card => {
+      postCards.forEach((card) => {
         const tagsAttr = card.getAttribute('data-tags') || '';
         const tagsList = tagsAttr.split(',');
         card.classList.toggle('is-filtered-out', !tagsList.includes(tag));
@@ -104,14 +120,14 @@ const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
 
       if (tagBtn) {
         const tag = tagBtn.getAttribute('data-tag') || '';
-        filterTag(tag);
+        const alreadyActive = tagBtn.classList.contains('is-active');
+        filterTag(alreadyActive ? '' : tag);
       }
     });
 
     clearFilterBtn?.addEventListener('click', () => filterTag(''));
   }
 
-  // 绑定 Astro 路由生命周期，完美支持 View Transitions
   document.addEventListener('astro:page-load', () => {
     initTagFilter();
   });
