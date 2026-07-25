@@ -4,7 +4,20 @@ import path from 'node:path';
 const rootDir = process.cwd();
 const distDir = path.join(rootDir, 'dist');
 const contentDir = path.join(rootDir, 'src/content/blog');
-const siteBaseUrl = 'https://huaaa3188.github.io/lucid-hubble';
+function getSiteConfig() {
+  const configPath = path.join(rootDir, 'astro.config.mjs');
+  const configText = readFileSync(configPath, 'utf8');
+  const siteMatch = configText.match(/site:\s*['"]([^'"]+)['"]/);
+  const baseMatch = configText.match(/base:\s*['"]([^'"]+)['"]/);
+  const site = siteMatch ? siteMatch[1].replace(/\/$/, '') : 'https://huaaa3188.github.io';
+  const baseRaw = baseMatch ? baseMatch[1].trim() : '';
+  const base = (baseRaw === '' || baseRaw === '/') ? '' : `/${baseRaw.replace(/^\/+|\/+$/g, '')}`;
+  const siteBaseUrl = `${site}${base}`;
+  const localPostPrefix = `${base}/post/`;
+  return { site, base, siteBaseUrl, localPostPrefix };
+}
+
+const { siteBaseUrl, localPostPrefix } = getSiteConfig();
 const rssUrl = `${siteBaseUrl}/rss.xml`;
 const sitemapUrl = `${siteBaseUrl}/sitemap.xml`;
 
@@ -105,8 +118,23 @@ function assertNoBareAmpersands(xml, context) {
 }
 
 function extractHrefs(html, className) {
-  const pattern = new RegExp(`<a\\b[^>]*class=["'][^"']*${escapeRegExp(className)}[^"']*["'][^>]*href=["']([^"']+)["']`, 'g');
-  return [...html.matchAll(pattern)].map((match) => match[1]);
+  const aTagPattern = /<a\b([^>]*)>/gi;
+  const hrefs = [];
+
+  for (const match of html.matchAll(aTagPattern)) {
+    const attrs = match[1];
+    const classMatch = attrs.match(/class=["']([^"']+)["']/i);
+    if (classMatch) {
+      const classes = classMatch[1].split(/\s+/);
+      if (classes.includes(className)) {
+        const hrefMatch = attrs.match(/href=["']([^"']+)["']/i);
+        if (hrefMatch) {
+          hrefs.push(hrefMatch[1]);
+        }
+      }
+    }
+  }
+  return hrefs;
 }
 
 const entries = getContentEntries();
@@ -114,12 +142,15 @@ const publishedEntries = entries.filter((entry) => !entry.isDraft);
 const draftEntries = entries.filter((entry) => entry.isDraft);
 
 const indexPath = assertFileExists('index.html');
+const aboutPath = assertFileExists('about/index.html');
 const sitemapPath = assertFileExists('sitemap.xml');
 const rssPath = assertFileExists('rss.xml');
 const robotsPath = assertFileExists('robots.txt');
+const ogImagePath = assertFileExists('og-default.png');
 
-if (existsSync(indexPath) && existsSync(sitemapPath) && existsSync(rssPath) && existsSync(robotsPath)) {
+if (existsSync(indexPath) && existsSync(aboutPath) && existsSync(sitemapPath) && existsSync(rssPath) && existsSync(robotsPath) && existsSync(ogImagePath)) {
   const indexHtml = readText(indexPath);
+  const aboutHtml = readText(aboutPath);
   const sitemapXml = readText(sitemapPath);
   const rssXml = readText(rssPath);
   const robotsTxt = readText(robotsPath);
@@ -127,6 +158,8 @@ if (existsSync(indexPath) && existsSync(sitemapPath) && existsSync(rssPath) && e
   assert(sitemapXml.startsWith('<?xml version="1.0" encoding="UTF-8"?>'), 'sitemap.xml 缺少 XML 声明');
   assertContains(sitemapXml, '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">', 'sitemap.xml');
   assertContains(sitemapXml, '</urlset>', 'sitemap.xml');
+  assertContains(sitemapXml, `<loc>${siteBaseUrl}/</loc>`, 'sitemap.xml 首页');
+  assertContains(sitemapXml, `<loc>${siteBaseUrl}/about/</loc>`, 'sitemap.xml 关于页');
   assertNoBareAmpersands(sitemapXml, 'sitemap.xml');
 
   assert(rssXml.startsWith('<?xml version="1.0" encoding="UTF-8"?>'), 'rss.xml 缺少 XML 声明');
@@ -136,11 +169,16 @@ if (existsSync(indexPath) && existsSync(sitemapPath) && existsSync(rssPath) && e
 
   assertContains(robotsTxt, `Sitemap: ${sitemapUrl}`, 'robots.txt');
   assertContains(indexHtml, `href="${rssUrl}"`, '首页 RSS 自动发现链接');
+  assertContains(aboutHtml, `<link rel="canonical" href="${siteBaseUrl}/about/">`, '关于页 canonical');
 
   const postLinks = extractHrefs(indexHtml, 'post-card-link');
   assert(
-    postLinks.every((href) => href.startsWith('/lucid-hubble/post/') && href.endsWith('/')),
-    '首页文章链接必须使用 /lucid-hubble/post/<slug>/ 格式'
+    postLinks.length === publishedEntries.length,
+    `首页找到的文章链接数 (${postLinks.length}) 必须等于已发布的文章数 (${publishedEntries.length})`
+  );
+  assert(
+    postLinks.every((href) => href.startsWith(localPostPrefix) && href.endsWith('/')),
+    `首页文章链接必须使用 ${localPostPrefix}<slug>/ 格式`
   );
 
   for (const entry of publishedEntries) {
@@ -148,13 +186,14 @@ if (existsSync(indexPath) && existsSync(sitemapPath) && existsSync(rssPath) && e
     if (!existsSync(postPagePath)) continue;
 
     const postHtml = readText(postPagePath);
-    const localHref = `/lucid-hubble/post/${entry.id}/`;
+    const localHref = `${localPostPrefix}${entry.id}/`;
 
     assertContains(indexHtml, `href="${localHref}"`, `首页文章列表 ${entry.id}`);
     assertContains(sitemapXml, `<loc>${entry.url}</loc>`, `sitemap.xml ${entry.id}`);
     assertContains(rssXml, `<link>${entry.url}</link>`, `rss.xml ${entry.id}`);
     assertContains(postHtml, `<link rel="canonical" href="${entry.url}">`, `文章页 ${entry.id}`);
     assertContains(postHtml, '<meta property="og:type" content="article">', `文章页 ${entry.id}`);
+    assertContains(postHtml, `<meta property="og:image" content="${siteBaseUrl}/og-default.png">`, `文章页 ${entry.id} og:image`);
     assertContains(postHtml, '<meta property="article:published_time"', `文章页 ${entry.id}`);
     assertContains(postHtml, `href="${rssUrl}"`, `文章页 ${entry.id} RSS 自动发现链接`);
     assertContains(postHtml, '<script type="application/ld+json">', `文章页 ${entry.id}`);
@@ -163,7 +202,7 @@ if (existsSync(indexPath) && existsSync(sitemapPath) && existsSync(rssPath) && e
   }
 
   for (const entry of draftEntries) {
-    const localHref = `/lucid-hubble/post/${entry.id}/`;
+    const localHref = `${localPostPrefix}${entry.id}/`;
 
     assertNotContains(indexHtml, localHref, `草稿 ${entry.id} 泄漏到首页`);
     assertNotContains(sitemapXml, entry.url, `草稿 ${entry.id} 泄漏到 sitemap.xml`);

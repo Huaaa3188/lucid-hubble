@@ -1,23 +1,12 @@
 ---
 // index.astro - 博客主页
 import Layout from '../layouts/Layout.astro';
-import { getCollection } from 'astro:content';
+import { formatPostDate, getRenderablePosts } from '../lib/site';
 
-// 1. 异步获取 'blog' 内容集合里的所有文章，并过滤掉草稿（本地开发环境除外，方便预览）
-const posts = await getCollection('blog', ({ data }) => {
-  return import.meta.env.DEV ? true : data.draft !== true;
-});
+// 1. 获取要渲染的文章列表（生产环境自动过滤草稿）
+const sortedPosts = await getRenderablePosts();
 
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
-
-// 2. 按时间倒序排序（最新的在最上面）
-const sortedPosts = posts.sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
-
-// 3. 辅助函数：格式化英文杂志日期
-function formatDate(date: Date) {
-  const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
-  return date.toLocaleDateString('en-US', options);
-}
 ---
 
 <Layout title="Lucid Hubble">
@@ -50,7 +39,7 @@ function formatDate(date: Date) {
               data-tags={tags.join(',')}
             >
               <div class="post-meta">
-                <time datetime={date.toISOString()}>{formatDate(date)}</time>
+                <time datetime={date.toISOString()}>{formatPostDate(date)}</time>
                 {tags.length > 0 && (
                   <>
                     <span>•</span>

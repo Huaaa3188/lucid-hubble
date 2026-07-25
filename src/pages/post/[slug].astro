@@ -1,13 +1,12 @@
 ---
 // [slug].astro - 动态文章编译详情页
-import { getCollection, render } from 'astro:content';
+import { render } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
+import { formatPostDate, getRenderablePosts } from '../../lib/site';
 
 // 1. Astro 必须的前置定义，声明所有可能生成的静态 URL 路径
 export async function getStaticPaths() {
-  const posts = await getCollection('blog', ({ data }) => {
-    return import.meta.env.DEV ? true : data.draft !== true;
-  });
+  const posts = await getRenderablePosts();
   return posts.map(post => ({
     params: { slug: post.id },
     props: { post },
@@ -41,21 +40,16 @@ const structuredData = {
 
 // 3. 将 Markdown 静态渲染编译为可在 Astro 中直接嵌套使用的组件
 const { Content } = await render(post);
-
-// 4. 辅助函数：格式化英文杂志日期
-function formatDate(date: Date) {
-  const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
-  return date.toLocaleDateString('en-US', options);
-}
 ---
 
-<Layout title={`${title} - Lucid Hubble`} description={description} canonicalUrl={postUrl} ogType="article" publishedTime={date.toISOString()} structuredData={structuredData}>
-  <article>
+<Layout title={`${title} - Lucid Hubble`} description={description} keywords={tags.length > 0 ? tags.join(', ') : undefined} canonicalUrl={postUrl} ogType="article" publishedTime={date.toISOString()} structuredData={structuredData}>
+  <article class="post-detail-article">
     <!-- 文章头部 -->
     <div class="post-header">
       <!-- 返回文章列表 -->
       <a href={homeUrl} class="back-btn">
-        <i data-lucide="arrow-left" class="back-icon"></i> 文章列表
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="back-icon"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+        文章列表
       </a>
       
       <!-- 主标题 -->
@@ -63,7 +57,7 @@ function formatDate(date: Date) {
       
       <!-- 元信息 -->
       <div class="post-meta post-detail-meta">
-        <time datetime={date.toISOString()}>{formatDate(date)}</time>
+        <time datetime={date.toISOString()}>{formatPostDate(date)}</time>
         {tags.length > 0 && (
           <>
             <span>•</span>

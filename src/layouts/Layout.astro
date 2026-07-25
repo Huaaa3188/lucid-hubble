@@ -7,8 +7,10 @@ import { getSiteUrl } from '../lib/site';
 interface Props {
   title: string;
   description?: string;
+  keywords?: string;
   canonicalUrl?: string;
   ogType?: "website" | "article";
+  ogImage?: string;
   publishedTime?: string;
   structuredData?: Record<string, unknown>;
 }
@@ -16,8 +18,10 @@ interface Props {
 const {
   title,
   description = "服务端工程、开发工具、读书与日常随笔。",
+  keywords = "服务端工程, 开发工具, 读书笔记, 日常随笔, Astro博客",
   canonicalUrl: canonicalUrlProp,
   ogType = "website",
+  ogImage: ogImageProp,
   publishedTime,
   structuredData
 } = Astro.props;
@@ -28,6 +32,7 @@ const aboutUrl = `${basePath}/about/`;
 const pagePath = Astro.url.pathname.endsWith('/') ? Astro.url.pathname : `${Astro.url.pathname}/`;
 const canonicalPath = pagePath.startsWith(homeUrl) ? pagePath : `${basePath}${pagePath}`;
 const canonicalUrl = canonicalUrlProp ?? new URL(canonicalPath, Astro.site ?? Astro.url).toString();
+const ogImage = ogImageProp ?? getSiteUrl('og-default.png');
 const isAboutPage = canonicalPath.startsWith(aboutUrl);
 const isWritingPage = !isAboutPage;
 const githubUrl = "https://github.com/huaaa3188";
@@ -47,7 +52,7 @@ const jsonLd = structuredData ? JSON.stringify(structuredData).replace(/</g, '\\
   
   <!-- SEO Meta Tags -->
   <meta name="description" content={description}>
-  <meta name="keywords" content="服务端工程, 开发工具, 读书笔记, 日常随笔, Astro博客">
+  <meta name="keywords" content={keywords}>
   <meta name="author" content="Lucid">
   <link rel="canonical" href={canonicalUrl}>
   <meta property="og:site_name" content="Lucid Hubble">
@@ -55,8 +60,10 @@ const jsonLd = structuredData ? JSON.stringify(structuredData).replace(/</g, '\\
   <meta property="og:description" content={description}>
   <meta property="og:url" content={canonicalUrl}>
   <meta property="og:type" content={ogType}>
+  <meta property="og:image" content={ogImage}>
   {publishedTime && <meta property="article:published_time" content={publishedTime}>}
-  <meta name="twitter:card" content="summary">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content={ogImage}>
   <link rel="alternate" type="application/rss+xml" title="Lucid Hubble" href={rssUrl}>
   {jsonLd && <script type="application/ld+json" set:html={jsonLd}></script>}
   
@@ -65,6 +72,18 @@ const jsonLd = structuredData ? JSON.stringify(structuredData).replace(/</g, '\\
   
   <!-- 立即检测暗黑模式并设置，防止页面出现闪烁 (FOUC) -->
   <script is:inline>
+    const sunSvgInline = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>';
+    const moonSvgInline = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>';
+
+    const syncThemeIcon = () => {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      const btn = document.getElementById('theme-toggle');
+      if (btn) {
+        btn.innerHTML = isDark ? sunSvgInline : moonSvgInline;
+        btn.setAttribute('aria-label', isDark ? '切换至亮色模式' : '切换至暗色模式');
+      }
+    };
+
     const applyTheme = () => {
       const savedTheme = localStorage.getItem('theme');
       const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -74,12 +93,12 @@ const jsonLd = structuredData ? JSON.stringify(structuredData).replace(/</g, '\\
       } else {
         document.documentElement.setAttribute('data-theme', 'light');
       }
+      syncThemeIcon();
     };
     
     // 首屏物理载入时立即应用，防闪烁
     applyTheme();
-    
-    // 每次 Astro 跨页平滑转场 DOM 交换完成后立即重新补回，防止主题丢失
+    document.addEventListener('DOMContentLoaded', syncThemeIcon);
     document.addEventListener('astro:after-swap', applyTheme);
   </script>
 </head>
@@ -94,8 +113,7 @@ const jsonLd = structuredData ? JSON.stringify(structuredData).replace(/</g, '\\
         <a href={aboutUrl} class={isAboutPage ? 'is-active' : undefined} aria-current={isAboutPage ? 'page' : undefined} data-astro-prefetch>About</a>
         <!-- Dark Mode Toggle Button -->
         <button id="theme-toggle" class="theme-toggle" aria-label="切换暗黑模式">
-          <!-- 图标将在客户端由 Lucide 动态渲染 -->
-          <i data-lucide="moon"></i>
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
         </button>
       </nav>
     </header>
@@ -112,23 +130,16 @@ const jsonLd = structuredData ? JSON.stringify(structuredData).replace(/</g, '\\
       </div>
       <div class="footer-socials">
         <a href={githubUrl} target="_blank" rel="noopener noreferrer" aria-label="GitHub">
-          <i data-lucide="github" class="footer-icon"></i>
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="footer-icon"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
         </a>
       </div>
     </footer>
   </div>
 
-  <!-- Lucide Icons CDN (For crisp vector icons) -->
-  <script is:inline src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
-
-  <!-- 客户端主题切换绑定与 Lucide 图标初始化逻辑 -->
+  <!-- 客户端主题切换绑定与图标初始化逻辑 -->
   <script>
-    // 在客户端初始化 Lucide 图标
-    function initIcons() {
-      if ((window as any).lucide) {
-        (window as any).lucide.createIcons();
-      }
-    }
+    const sunSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>';
+    const moonSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>';
 
     // 更新按钮状态图标
     function updateToggleIcon() {
@@ -138,21 +149,18 @@ const jsonLd = structuredData ? JSON.stringify(structuredData).replace(/</g, '\\
       const currentTheme = document.documentElement.getAttribute('data-theme');
       
       if (currentTheme === 'dark') {
-        themeToggleBtn.innerHTML = '<i data-lucide="sun"></i>';
+        themeToggleBtn.innerHTML = sunSvg;
         themeToggleBtn.setAttribute('aria-label', '切换至亮色模式');
       } else {
-        themeToggleBtn.innerHTML = '<i data-lucide="moon"></i>';
+        themeToggleBtn.innerHTML = moonSvg;
         themeToggleBtn.setAttribute('aria-label', '切换至暗色模式');
       }
-
-      initIcons();
     }
 
     // 绑定事件与初始化
     function initThemeToggle() {
       const themeToggleBtn = document.getElementById('theme-toggle');
       if (themeToggleBtn) {
-        // 先移除可能残留的旧绑定，再重新绑定，避免 Astro 路由局部刷新导致多次绑定
         themeToggleBtn.removeEventListener('click', handleToggle);
         themeToggleBtn.addEventListener('click', handleToggle);
       }
@@ -179,32 +187,25 @@ const jsonLd = structuredData ? JSON.stringify(structuredData).replace(/</g, '\\
       progressBar.style.width = `${scrollPercent}%`;
     }
 
-    // 阅读进度条更新逻辑
+    // 阅读进度条更新逻辑（仅在文章详情页起效）
     function initProgressBar() {
       const progressBar = document.getElementById('read-progress');
       if (!progressBar) return;
 
-      // 先移除旧监听；updateProgress 是稳定引用，Astro 路由切换后可以正确解绑。
       window.removeEventListener('scroll', updateProgress);
 
-      // 仅在详情页（即包含 <article> 容器的页面）上挂载滚动监听
-      const isArticlePage = document.querySelector('article');
+      const isArticlePage = document.querySelector('article.post-detail-article');
       if (!isArticlePage) {
         progressBar.style.width = '0%';
         return;
       }
 
-      // 绑定滚动事件，先解绑以防重复绑定
       window.addEventListener('scroll', updateProgress);
-      
-      // 初始渲染时执行一次
       updateProgress();
     }
 
     // 适配 Astro View Transitions 的标准生命周期
-    // 确保首屏加载及每一次跨页平滑转场完成后，所有动态交互与图标渲染顺利重置
     document.addEventListener('astro:page-load', () => {
-      initIcons();
       initThemeToggle();
       initProgressBar();
     });
