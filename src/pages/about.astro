@@ -9,30 +9,30 @@ const writingUrl = `${basePath}/#blog`;
 const principles = [
   {
     icon: 'book-open' as const,
-    title: '先写字',
-    body: '站点是放文字的地方。工程实践、工具踩坑、读书和日常碎片都可以，不追热点，也不必每篇都有完整论证。',
+    title: '文字优先',
+    body: '关注工程实践、工具探索与日常思考的长期沉淀。不追逐热点，也不强求篇篇皆为教程，保持文字的扎实与真实。',
   },
   {
     icon: 'layers' as const,
-    title: '尽量静态',
-    body: 'Markdown 进，Astro 出，GitHub Pages 托管。没有后台、没有数据库、没有必须每天盯的仪表盘。',
-  },
-  {
-    icon: 'shield-check' as const,
-    title: '检查要诚实',
-    body: '链接、草稿、canonical、RSS 要有人真查。绿灯如果只会点头，就不如没有。发布前优先跑 verify。',
+    title: '纯粹静态',
+    body: 'Markdown 编写，Astro 编译，全静态托管。去中心化、零后台、零数据库，轻量且具备极长的生命力。',
   },
   {
     icon: 'feather' as const,
-    title: '少依赖',
-    body: '图标构建期进包，主题靠 CSS，不为装饰再拉一串 CDN。功能能少就少，门禁坏了再修。',
+    title: '极简约束',
+    body: '零第三方运行时脚本拉取，图标与样式纯本地原生化。拒绝无谓的依赖入侵，保持极致纯净的加载体验。',
+  },
+  {
+    icon: 'shield-check' as const,
+    title: '长效发现',
+    body: '标准 RSS 自动发现、完整 Sitemap 与语义化结构数据，确保每篇文章都能在时间沉淀中被正常且长期地发现。',
   },
 ];
 ---
 
 <Layout
   title="About - Lucid Hubble"
-  description="关于 Lucid：服务端工程、开发工具、读书与日常随笔。这个静态站怎么长成现在这样。"
+  description="关于 Lucid：服务端工程、开发工具、读书与日常随笔。记录一个静态数字花园的构建与思考。"
 >
   <article class="about-container">
     <header class="about-header">
@@ -40,20 +40,20 @@ const principles = [
       <h1>关于 Lucid</h1>
       <div class="about-rule" aria-hidden="true"></div>
       <p class="about-deck">
-        写服务端，也折腾工具。这个站用来放不适合塞进信息流里的长一点的记录。
+        记录服务端工程、工具实践与长期思考。这里是一个不被算法裹挟的数字花园。
       </p>
     </header>
 
     <section class="about-content">
       <p>
-        我是 <strong>Lucid</strong>。平时主要和后端、基础设施打交道，偶尔会把本地开发环境搓得比较花。写东西没有固定栏目：有时是线上问题，有时是自托管工具，有时只是下班后还没散掉的一点想法。
+        我是 <strong>Lucid</strong>。一名服务端工程师，日常主要与后端架构、分布式系统和基础设施打交道，偶尔也会折腾一些自托管工具与开发环境。
       </p>
       <p>
-        开这个站，不是为了做成产品，也不是为了喂算法。就是想给一些话找个稳定的地址——以后还能打开，搜索引擎也能看见，自己回头翻也方便。
+        这里是我在社交信息流之外的静态沉淀点。那些线上排查的工程记录、自建工具的部署心得，以及下班后尚未散掉的一些碎片感悟，都可以在这里静静留存。
       </p>
       <p>
-        页面普通一点没关系。链接别坏、草稿别漏、订阅能用，对我来说就够了。想看文章的话，可以从
-        <a href={writingUrl}>Writing</a> 进去。
+        站点的价值不在于繁复的装饰，而在于内容的稳定持久。保持轻量、稳定访问，对我来说就足够了。如需阅读文章，可以从
+        <a href={writingUrl}>Writing</a> 列表开始。
       </p>
     </section>
 
@@ -76,7 +76,7 @@ const principles = [
     </section>
 
     <p class="about-footnote">
-      栈很短：Astro、Markdown、静态产物。能长期保留、能被正常发现，就继续用。
+      栈很短：Astro + Markdown + CSS。文字很长：记录工程、工具与思考。
     </p>
   </article>
 </Layout>
