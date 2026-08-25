@@ -1,5 +1,5 @@
 ---
-// Layout.astro - 极简杂志风全局母版
+// Layout.astro - 极客工程与终端控制台全局母版
 import '../styles/global.css';
 import { ClientRouter } from 'astro:transitions';
 import { getSiteUrl } from '../lib/site';
@@ -14,6 +14,7 @@ interface Props {
   ogImage?: string;
   publishedTime?: string;
   structuredData?: Record<string, unknown>;
+  wide?: boolean;
 }
 
 const {
@@ -24,8 +25,10 @@ const {
   ogType = "website",
   ogImage: ogImageProp,
   publishedTime,
-  structuredData
+  structuredData,
+  wide = false
 } = Astro.props;
+
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
 const homeUrl = `${basePath}/`;
 const writingUrl = `${basePath}/#blog`;
@@ -67,15 +70,15 @@ const jsonLd = structuredData ? JSON.stringify(structuredData).replace(/</g, '\\
   <link rel="alternate" type="application/rss+xml" title="Lucid Hubble" href={rssUrl}>
   {jsonLd && <script type="application/ld+json" set:html={jsonLd}></script>}
   
-  <!-- Favicon (line monogram, no emoji) -->
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23171513'/><path d='M32 28 V72 H68' stroke='%23f4f2ec' stroke-width='7' stroke-linecap='round' stroke-linejoin='round' fill='none'/><circle cx='66' cy='30' r='5' fill='%23e26d46'/></svg>">
+  <!-- Terminal Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230d1117'/><text x='16' y='68' font-family='monospace' font-weight='bold' font-size='56' fill='%2358a6ff'>&gt;_</text></svg>">
   
-  <!-- Theme before paint: only data-theme + aria, never swap icon markup -->
+  <!-- Theme before paint -->
   <script is:inline>
     const applyTheme = () => {
       const savedTheme = localStorage.getItem('theme');
       const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      const theme = savedTheme === 'dark' || (!savedTheme && systemPrefersDark) ? 'dark' : 'light';
+      const theme = savedTheme === 'light' ? 'light' : (!savedTheme && !systemPrefersDark ? 'light' : 'dark');
 
       document.documentElement.setAttribute('data-theme', theme);
 
@@ -90,20 +93,30 @@ const jsonLd = structuredData ? JSON.stringify(structuredData).replace(/</g, '\\
   </script>
 </head>
 <body>
-  <div class="ambient-glow" aria-hidden="true"></div>
   <div id="read-progress" class="read-progress"></div>
-  <div class="container">
+  <div class:list={['container', { 'container-wide': wide }]}>
     <header class="site-header" transition:name="site-header">
-      <a href={homeUrl} class="logo" transition:name="site-logo">Lucid Hubble.</a>
+      <div class="logo-wrap">
+        <a href={homeUrl} class="logo" transition:name="site-logo">
+          <span class="logo-prompt">&gt;_</span>
+          <span>LUCID_HUBBLE</span>
+          <span class="cursor-blink" aria-hidden="true"></span>
+        </a>
+      </div>
+
       <nav class="nav-links">
-        <a href={writingUrl} class={isWritingPage ? 'is-active' : undefined} aria-current={isWritingPage ? 'location' : undefined}>Writing</a>
-        <a href={aboutUrl} class={isAboutPage ? 'is-active' : undefined} aria-current={isAboutPage ? 'page' : undefined} data-astro-prefetch>About</a>
-        <button id="theme-toggle" type="button" class="theme-toggle" aria-label="切换暗黑模式">
+        <div class="status-indicator">
+          <span class="pulse-dot"></span>
+          <span>ONLINE</span>
+        </div>
+        <a href={writingUrl} class={isWritingPage ? 'is-active' : undefined} aria-current={isWritingPage ? 'location' : undefined}>~/writings</a>
+        <a href={aboutUrl} class={isAboutPage ? 'is-active' : undefined} aria-current={isAboutPage ? 'page' : undefined} data-astro-prefetch>~/about</a>
+        <button id="theme-toggle" type="button" class="theme-toggle" aria-label="切换主题">
           <span class="theme-icon theme-icon-moon">
-            <Icon name="moon" size={20} />
+            <Icon name="moon" size={16} />
           </span>
           <span class="theme-icon theme-icon-sun">
-            <Icon name="sun" size={20} />
+            <Icon name="sun" size={16} />
           </span>
         </button>
       </nav>
@@ -115,11 +128,14 @@ const jsonLd = structuredData ? JSON.stringify(structuredData).replace(/</g, '\\
 
     <footer class="site-footer">
       <div>
-        &copy; 2026 Lucid Hubble. 记录工程、工具与日常思考。
+        <span>[SYS_READY]</span> &copy; 2026 Lucid Hubble. All systems nominal.
       </div>
       <div class="footer-socials">
         <a href={githubUrl} target="_blank" rel="noopener noreferrer" aria-label="GitHub">
           <Icon name="github" class="footer-icon" />
+        </a>
+        <a href={rssUrl} target="_blank" rel="noopener noreferrer" aria-label="RSS Feed">
+          <Icon name="feather" class="footer-icon" />
         </a>
       </div>
     </footer>
@@ -175,10 +191,88 @@ const jsonLd = structuredData ? JSON.stringify(structuredData).replace(/</g, '\\
       updateProgress();
     }
 
+    function initCodeBlocks() {
+      const pres = document.querySelectorAll<HTMLPreElement>('.post-content pre');
+      pres.forEach((pre) => {
+        if (pre.parentElement?.classList.contains('code-wrapper')) return;
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'code-wrapper';
+
+        const header = document.createElement('div');
+        header.className = 'code-header';
+
+        const dots = document.createElement('div');
+        dots.className = 'console-dots';
+        dots.innerHTML = '<span class="console-dot dot-red"></span><span class="console-dot dot-yellow"></span><span class="console-dot dot-green"></span>';
+
+        const lang = pre.getAttribute('data-language') || 'code';
+        const langEl = document.createElement('span');
+        langEl.className = 'code-lang';
+        langEl.textContent = `[${lang.toUpperCase()}]`;
+
+        const copyBtn = document.createElement('button');
+        copyBtn.className = 'copy-btn';
+        copyBtn.type = 'button';
+        copyBtn.textContent = 'COPY';
+        copyBtn.setAttribute('aria-label', '复制代码');
+
+        copyBtn.addEventListener('click', async () => {
+          const codeText = pre.querySelector('code')?.innerText || pre.innerText;
+          try {
+            await navigator.clipboard.writeText(codeText);
+            copyBtn.textContent = 'COPIED ✓';
+            copyBtn.classList.add('copied');
+            setTimeout(() => {
+              copyBtn.textContent = 'COPY';
+              copyBtn.classList.remove('copied');
+            }, 2000);
+          } catch (err) {
+            console.error('Failed to copy code: ', err);
+          }
+        });
+
+        header.appendChild(dots);
+        header.appendChild(langEl);
+        header.appendChild(copyBtn);
+
+        pre.parentNode?.insertBefore(wrapper, pre);
+        wrapper.appendChild(header);
+        wrapper.appendChild(pre);
+      });
+    }
+
+    function initTocScrollSpy() {
+      const headings = document.querySelectorAll<HTMLElement>('.post-content h2, .post-content h3');
+      const tocLinks = document.querySelectorAll<HTMLAnchorElement>('.toc-link');
+      if (!headings.length || !tocLinks.length) return;
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              const id = entry.target.getAttribute('id');
+              tocLinks.forEach((link) => {
+                const href = link.getAttribute('href') || '';
+                const isActive = href === `#${id}`;
+                link.classList.toggle('is-active', isActive);
+              });
+            }
+          });
+        },
+        { rootMargin: '-20% 0px -70% 0px' }
+      );
+
+      headings.forEach((h) => observer.observe(h));
+    }
+
     document.addEventListener('astro:page-load', () => {
       initThemeToggle();
       initProgressBar();
+      initCodeBlocks();
+      initTocScrollSpy();
     });
   </script>
 </body>
 </html>
+

@@ -1,8 +1,8 @@
 ---
-// index.astro - 博客主页
+// index.astro - 极客终端控制台主页
 import Layout from '../layouts/Layout.astro';
 import Icon from '../components/Icon.astro';
-import { formatPostDate, getRenderablePosts } from '../lib/site';
+import { formatLogDate, calculateReadingStats, getRenderablePosts } from '../lib/site';
 
 const sortedPosts = await getRenderablePosts();
 const postCount = sortedPosts.length;
@@ -10,74 +10,106 @@ const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
 ---
 
 <Layout title="Lucid Hubble">
-  <div class="home-shell">
-  <section class="hero">
-    <p class="hero-eyebrow mono-badge">Personal notes</p>
-    <h1>Lucid Hubble</h1>
-    <div class="hero-rule" aria-hidden="true"></div>
-    <p class="hero-lede">服务端工程、工具折腾、读书与日常随笔。</p>
+  <!-- Console Dashboard Hero -->
+  <section class="console-hero">
+    <div class="console-bar">
+      <div class="console-dots">
+        <span class="console-dot dot-red"></span>
+        <span class="console-dot dot-yellow"></span>
+        <span class="console-dot dot-green"></span>
+      </div>
+      <div class="console-title">lucid@hubble: ~ (zsh)</div>
+      <div class="console-sys">[UTF-8]</div>
+    </div>
+    <div class="console-body">
+      <div class="console-prompt-line">
+        <span class="console-user">lucid</span><span class="console-host">@hubble</span>:<span class="console-path">~</span>$ <span class="console-cmd">cat ./manifesto.txt</span>
+      </div>
+      <p class="hero-statement">
+        服务端工程、分布式架构、自托管工具与日常碎片思考。记录一个纯静态、去中心化的个人数字花园。
+      </p>
+      <div class="console-metrics-grid">
+        <div class="metric-box">
+          <span class="metric-label">System Status</span>
+          <span class="metric-value green">ONLINE / 200 OK</span>
+        </div>
+        <div class="metric-box">
+          <span class="metric-label">Total Entries</span>
+          <span class="metric-value cyan">{postCount} LOGS</span>
+        </div>
+        <div class="metric-box">
+          <span class="metric-label">Primary Stack</span>
+          <span class="metric-value amber">GO / DISTRIBUTED / ASTRO</span>
+        </div>
+      </div>
+    </div>
   </section>
 
+  <!-- Writings Section -->
   <section id="blog" class="blog-section">
     <div class="section-heading">
-      <h2 class="section-title">Recent writings</h2>
-      <span class="section-count">{postCount} {postCount === 1 ? 'post' : 'posts'}</span>
+      <h2 class="section-title">ENGINEERING_LOGS</h2>
+      <span class="section-count">TOTAL: {postCount}</span>
     </div>
 
     <div id="filter-bar" class="filter-bar hidden">
-      <span>正在检索分类: <strong id="active-tag"></strong></span>
-      <button id="clear-filter" type="button" class="clear-btn">清除检索</button>
+      <span>&gt; FILTER_ACTIVE: <strong id="active-tag"></strong></span>
+      <button id="clear-filter" type="button" class="clear-btn">[CLEAR_FILTER]</button>
     </div>
 
     <div id="posts-list" class="posts-list">
       {sortedPosts.length === 0 ? (
-        <p class="empty-state">目前还没有发布任何文章。</p>
+        <p class="empty-state">&gt; NO_LOG_ENTRIES_FOUND.</p>
       ) : (
-        sortedPosts.map((post, index) => {
+        sortedPosts.map((post) => {
           const { title, date, description, tags = [] } = post.data;
-          const stagger = Math.min(index, 8);
+          const stats = calculateReadingStats(post.body || '');
 
           return (
-            <article
-              class="post-card"
-              data-tags={tags.join(',')}
-              style={`--stagger: ${stagger}`}
-            >
-              <div class="post-meta">
-                <time datetime={date.toISOString()}>{formatPostDate(date)}</time>
-                {tags.length > 0 && (
-                  <>
-                    <span aria-hidden="true">·</span>
-                    <div class="tag-list">
-                      {tags.map((tag) => (
-                        <button
-                          type="button"
-                          class="tag-btn"
-                          data-tag={tag}
-                          aria-label={`按标签 ${tag} 筛选文章`}
-                          aria-pressed="false"
-                        >
-                          #{tag}
-                        </button>
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
-              <a href={`${basePath}/post/${post.id}/`} class="post-card-link" data-astro-prefetch>
-                <div class="post-card-content">
-                  <h3>{title}</h3>
-                  <p>{description}</p>
+            <article class="post-card" data-tags={tags.join(',')}>
+              <div class="post-card-header">
+                <div class="post-timestamp">
+                  <span aria-hidden="true">[LOG]</span>
+                  <time datetime={date.toISOString()}>{formatLogDate(date)}</time>
                 </div>
-                <Icon name="arrow-up-right" class="card-arrow" />
+                <div class="post-reading-time">
+                  <span>[{stats.timeText}]</span>
+                </div>
+              </div>
+
+              <a href={`${basePath}/post/${post.id}/`} class="post-card-link" data-astro-prefetch>
+                <div class="post-card-title-row">
+                  <h3>{title}</h3>
+                  <Icon name="arrow-up-right" class="card-arrow" />
+                </div>
+                <p class="post-card-desc">{description}</p>
               </a>
+
+              <div class="post-card-footer">
+                <div class="tag-list">
+                  {tags.map((tag) => (
+                    <button
+                      type="button"
+                      class="tag-btn"
+                      data-tag={tag}
+                      aria-label={`按标签 ${tag} 筛选文章`}
+                      aria-pressed="false"
+                    >
+                      [#{tag}]
+                    </button>
+                  ))}
+                </div>
+                <a href={`${basePath}/post/${post.id}/`} class="read-cta" tabindex="-1" aria-hidden="true">
+                  <span>READ_LOG</span>
+                  <span>-&gt;</span>
+                </a>
+              </div>
             </article>
           );
         })
       )}
     </div>
   </section>
-  </div>
 </Layout>
 
 <script>
@@ -111,7 +143,7 @@ const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
       }
 
       filterBar?.classList.remove('hidden');
-      if (activeTagEl) activeTagEl.textContent = `#${tag}`;
+      if (activeTagEl) activeTagEl.textContent = `[#${tag}]`;
       setActiveTagButton(tag);
 
       postCards.forEach((card) => {
@@ -139,3 +171,4 @@ const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
     initTagFilter();
   });
 </script>
+

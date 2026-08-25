@@ -1,25 +1,32 @@
 ---
-// [slug].astro - 动态文章编译详情页
+// [slug].astro - 动态文章编译详情页 (Geek Terminal Layout)
 import { render } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
 import Icon from '../../components/Icon.astro';
-import { formatPostDate, getRenderablePosts } from '../../lib/site';
+import { formatLogDate, calculateReadingStats, getRenderablePosts } from '../../lib/site';
 
-// 1. Astro 必须的前置定义，声明所有可能生成的静态 URL 路径
+// 1. 声明所有可能生成的静态 URL 路径并注入上一篇/下一篇上下文
 export async function getStaticPaths() {
   const posts = await getRenderablePosts();
-  return posts.map(post => ({
-    params: { slug: post.id },
-    props: { post },
-  }));
+  return posts.map((post, index) => {
+    // 列表按时间降序：index + 1 为更早的文章 (PREV)，index - 1 为更新的文章 (NEXT)
+    const prevPost = index < posts.length - 1 ? posts[index + 1] : null;
+    const nextPost = index > 0 ? posts[index - 1] : null;
+    return {
+      params: { slug: post.id },
+      props: { post, prevPost, nextPost },
+    };
+  });
 }
 
 // 2. 从参数和 props 中获取当前页面对应的文章数据
-const { post } = Astro.props;
+const { post, prevPost, nextPost } = Astro.props;
 const { title, date, description, tags = [] } = post.data;
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
 const homeUrl = `${basePath}/`;
 const postUrl = new URL(`${basePath}/post/${post.id}/`, Astro.site ?? Astro.url).toString();
+const stats = calculateReadingStats(post.body || '');
+
 const structuredData = {
   '@context': 'https://schema.org',
   '@type': 'BlogPosting',
@@ -39,48 +46,111 @@ const structuredData = {
   keywords: tags,
 };
 
-// 3. 将 Markdown 静态渲染编译为可在 Astro 中直接嵌套使用的组件
-const { Content } = await render(post);
+// 3. 将 Markdown 静态渲染编译为可在 Astro 中直接嵌套使用的组件，并获取 headings 用于 TOC
+const { Content, headings = [] } = await render(post);
+const tocHeadings = headings.filter(h => h.depth === 2 || h.depth === 3);
 ---
 
-<Layout title={`${title} - Lucid Hubble`} description={description} keywords={tags.length > 0 ? tags.join(', ') : undefined} canonicalUrl={postUrl} ogType="article" publishedTime={date.toISOString()} structuredData={structuredData}>
-  <article class="post-detail-article">
-    <!-- 文章头部 -->
-    <div class="post-header">
-      <!-- 返回文章列表 -->
-      <a href={homeUrl} class="back-btn">
-        <Icon name="arrow-left" class="back-icon" />
-        文章列表
-      </a>
-      
-      <!-- 主标题 -->
-      <h1>{title}</h1>
-      
-      <!-- 元信息 -->
-      <div class="post-meta post-detail-meta">
-        <time datetime={date.toISOString()}>{formatPostDate(date)}</time>
-        {tags.length > 0 && (
-          <>
-            <span>•</span>
-            <div class="post-tags">
-              {tags.map(tag => (
-                <span class="tag">#{tag}</span>
-              ))}
+<Layout
+  title={`${title} - Lucid Hubble`}
+  description={description}
+  keywords={tags.length > 0 ? tags.join(', ') : undefined}
+  canonicalUrl={postUrl}
+  ogType="article"
+  publishedTime={date.toISOString()}
+  structuredData={structuredData}
+  wide={tocHeadings.length > 0}
+>
+  <div class="article-shell">
+    <article class="post-detail-article">
+      <!-- 结构化文件头卡片 -->
+      <div class="post-header-card">
+        <a href={homeUrl} class="back-btn">
+          <Icon name="arrow-left" class="back-icon" size={14} />
+          <span>&lt; cd ../writings</span>
+        </a>
+
+        <h1>{title}</h1>
+
+        <div class="post-meta-details">
+          <div class="meta-field">
+            <span class="meta-key">DATE:</span>
+            <time datetime={date.toISOString()} class="meta-val">{formatLogDate(date)}</time>
+          </div>
+          <div class="meta-field">
+            <span class="meta-key">READ_TIME:</span>
+            <span class="meta-val">{stats.timeText}</span>
+          </div>
+          <div class="meta-field">
+            <span class="meta-key">LENGTH:</span>
+            <span class="meta-val">{stats.wordsText}</span>
+          </div>
+          {tags.length > 0 && (
+            <div class="meta-field">
+              <span class="meta-key">TAGS:</span>
+              <div class="tag-list">
+                {tags.map(tag => (
+                  <span class="tag">#{tag}</span>
+                ))}
+              </div>
             </div>
-          </>
-        )}
+          )}
+        </div>
       </div>
-    </div>
 
-    <!-- 静态编译生成的 HTML 博客正文 -->
-    <div class="post-content">
-      <Content />
-    </div>
+      <!-- Markdown 正文 -->
+      <div class="post-content">
+        <Content />
+      </div>
 
-    <div class="post-copyright" aria-label="文章版权信息">
-      <p>本文作者：Lucid</p>
-      <p>原文链接：<a href={postUrl}>{postUrl}</a></p>
-      <p>未经许可，禁止转载或镜像全文；引用请注明出处。</p>
-    </div>
-  </article>
+      <!-- 版权卡片 -->
+      <div class="post-copyright" aria-label="文章版权信息">
+        <p>&gt; AUTHOR: Lucid</p>
+        <p>&gt; CANONICAL_URL: <a href={postUrl}>{postUrl}</a></p>
+        <p>&gt; PERMISSION: CC BY-NC-SA 4.0 // 转载请注明原文出处与作者。</p>
+      </div>
+
+      <!-- 前后篇快捷翻页 -->
+      {(prevPost || nextPost) && (
+        <nav class="post-nav-grid" aria-label="文章导航">
+          {prevPost ? (
+            <a href={`${basePath}/post/${prevPost.id}/`} class="post-nav-card">
+              <span class="post-nav-direction">&lt; PREV_LOG</span>
+              <span class="post-nav-title">{prevPost.data.title}</span>
+            </a>
+          ) : (
+            <div></div>
+          )}
+          {nextPost ? (
+            <a href={`${basePath}/post/${nextPost.id}/`} class="post-nav-card" style="text-align: right;">
+              <span class="post-nav-direction">NEXT_LOG &gt;</span>
+              <span class="post-nav-title">{nextPost.data.title}</span>
+            </a>
+          ) : (
+            <div></div>
+          )}
+        </nav>
+      )}
+    </article>
+
+    <!-- 宽屏 Sticky 树状目录 (TOC) -->
+    {tocHeadings.length > 0 && (
+      <aside class="toc-sidebar" aria-label="文章目录">
+        <div class="toc-card">
+          <div class="toc-title">TABLE_OF_CONTENTS</div>
+          <ul class="toc-list">
+            {tocHeadings.map(h => (
+              <li class={`toc-item toc-depth-${h.depth}`}>
+                <a href={`#${h.slug}`} class="toc-link">
+                  {h.depth === 2 ? '├── ' : '└── '}
+                  {h.text}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </aside>
+    )}
+  </div>
 </Layout>
+

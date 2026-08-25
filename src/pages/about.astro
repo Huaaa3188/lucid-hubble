@@ -1,5 +1,5 @@
 ---
-// about.astro - 关于页（第二作品面：叙事 + 立场，仍服务阅读）
+// about.astro - 极客工程系统档案 / manual page
 import Layout from '../layouts/Layout.astro';
 import Icon from '../components/Icon.astro';
 
@@ -9,23 +9,23 @@ const writingUrl = `${basePath}/#blog`;
 const principles = [
   {
     icon: 'book-open' as const,
-    title: '文字优先',
-    body: '关注工程实践、工具探索与日常思考的长期沉淀。不追逐热点，也不强求篇篇皆为教程，保持文字的扎实与真实。',
+    title: '01. 文字优先 (TEXT_FIRST)',
+    body: '关注工程实践、工具探索与日常思考的长期沉淀。不追逐算法热点，保持文字与技术记录的扎实与真实。',
   },
   {
     icon: 'layers' as const,
-    title: '纯粹静态',
+    title: '02. 纯粹静态 (PURE_STATIC)',
     body: 'Markdown 编写，Astro 编译，全静态托管。去中心化、零后台、零数据库，轻量且具备极长的生命力。',
   },
   {
     icon: 'feather' as const,
-    title: '极简约束',
-    body: '零第三方运行时脚本拉取，图标与样式纯本地原生化。拒绝无谓的依赖入侵，保持极致纯净的加载体验。',
+    title: '03. 零多余运行时 (ZERO_RUNTIME)',
+    body: '零外部第三方跟踪与重量框架注入，图标与样式纯本地原生化。拒绝无谓的依赖入侵，保持毫秒级加载。',
   },
   {
     icon: 'shield-check' as const,
-    title: '长效发现',
-    body: '标准 RSS 自动发现、完整 Sitemap 与语义化结构数据，确保每篇文章都能在时间沉淀中被正常且长期地发现。',
+    title: '04. 长效发现 (LONG_TERM_DISCOVERY)',
+    body: '标准 RSS 自动发现、完整 Sitemap 与语义化结构数据，确保每篇文章在时间沉淀中都能被正常检索。',
   },
 ];
 ---
@@ -34,49 +34,70 @@ const principles = [
   title="About - Lucid Hubble"
   description="关于 Lucid：服务端工程、开发工具、读书与日常随笔。记录一个静态数字花园的构建与思考。"
 >
-  <article class="about-container">
-    <header class="about-header">
-      <p class="about-eyebrow mono-badge">About</p>
-      <h1>关于 Lucid</h1>
-      <div class="about-rule" aria-hidden="true"></div>
-      <p class="about-deck">
-        记录服务端工程、工具实践与长期思考。这里是一个不被算法裹挟的数字花园。
-      </p>
-    </header>
+  <div class="about-shell">
+    <div class="about-header-bar">
+      <span>MANPAGES(1) // SYSTEM_SPEC</span>
+      <span>LUCID_HUBBLE (v1.0.0)</span>
+      <span>[ONLINE]</span>
+    </div>
 
-    <section class="about-content">
-      <p>
-        我是 <strong>Lucid</strong>。一名服务端工程师，日常主要与后端架构、分布式系统和基础设施打交道，偶尔也会折腾一些自托管工具与开发环境。
-      </p>
-      <p>
-        这里是我在社交信息流之外的静态沉淀点。那些线上排查的工程记录、自建工具的部署心得，以及下班后尚未散掉的一些碎片感悟，都可以在这里静静留存。
-      </p>
-      <p>
-        站点的价值不在于繁复的装饰，而在于内容的稳定持久。保持轻量、稳定访问，对我来说就足够了。如需阅读文章，可以从
-        <a href={writingUrl}>Writing</a> 列表开始。
-      </p>
-    </section>
+    <div class="about-body">
+      <section class="man-section">
+        <h2 class="man-title">:: NAME</h2>
+        <div class="man-text">
+          <p>
+            <strong>Lucid</strong> — 服务端工程师 / 基础设施折腾者 / 静态数字花园 Gardener。
+          </p>
+        </div>
+      </section>
 
-    <section class="about-principles" aria-labelledby="about-principles-title">
-      <div class="section-heading about-principles-heading">
-        <h2 id="about-principles-title" class="section-title">How this site works</h2>
-      </div>
+      <section class="man-section">
+        <h2 class="man-title">:: SYNOPSIS</h2>
+        <div class="man-text">
+          <p>
+            日常主要与后端架构、分布式系统、网络协议与基础设施打交道。热衷于自托管开源工具、构建确定性的开发环境与极客小工具。
+          </p>
+        </div>
+      </section>
 
-      <div class="dimensions">
-        {principles.map((item) => (
-          <div class="dimension-card">
-            <h3>
-              <Icon name={item.icon} class="dimension-icon" size={18} strokeWidth={1.75} />
-              <span>{item.title}</span>
-            </h3>
-            <p>{item.body}</p>
-          </div>
-        ))}
-      </div>
-    </section>
+      <section class="man-section">
+        <h2 class="man-title">:: DESCRIPTION</h2>
+        <div class="man-text">
+          <p>
+            这里是我在喧嚣的社交信息流之外的<strong>静态技术沉淀点</strong>。
+          </p>
+          <p>
+            那些线上排障的深度复盘、工具链的配置心得，以及深夜思考的碎片感悟，都在这里静静留存。
+            站点的核心价值在于内容的持久与真实，保持纯净与极速访问就是最高优先级。
+          </p>
+          <p>
+            如需阅读所有沉淀文章，请访问命令行入口：<a href={writingUrl}>~/writings</a>。
+          </p>
+        </div>
+      </section>
 
-    <p class="about-footnote">
-      栈很短：Astro + Markdown + CSS。文字很长：记录工程、工具与思考。
-    </p>
-  </article>
+      <section class="man-section">
+        <h2 class="man-title">:: ENGINEERING_PRINCIPLES</h2>
+        <div class="man-grid">
+          {principles.map((item) => (
+            <div class="man-card">
+              <h4>{item.title}</h4>
+              <p>{item.body}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section class="man-section" style="margin-bottom: 0;">
+        <h2 class="man-title">:: SYSTEM_ENVIRONMENT</h2>
+        <div class="man-card" style="font-family: var(--font-mono); font-size: var(--text-2xs); line-height: 1.7; color: hsl(var(--fg-muted));">
+          <p>&gt; ENGINE: Astro 7.x (Content Layer + Speculation Rules)</p>
+          <p>&gt; RUNTIME: Zero Client JS (Vanilla DOM Enhancements)</p>
+          <p>&gt; HOSTING: GitHub Pages Static Deployment</p>
+          <p>&gt; STACK: TypeScript / CSS Custom Properties / Shiki</p>
+        </div>
+      </section>
+    </div>
+  </div>
 </Layout>
+
