@@ -368,6 +368,293 @@ html[data-theme="dark"] .theme-toggle .theme-icon-sun {
 }
 
 /* -------------------------------------------------------------
+ * FULL INTERACTIVE TERMINAL EMULATOR
+ * ------------------------------------------------------------- */
+
+.mode-toggle-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-4);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+}
+
+.mode-switch-group {
+  display: inline-flex;
+  background: hsl(var(--surface-base));
+  border: 1px solid hsl(var(--border));
+  padding: 2px;
+  border-radius: var(--radius-xs);
+  gap: 2px;
+}
+
+.mode-btn {
+  background: transparent;
+  border: none;
+  color: hsl(var(--fg-muted));
+  padding: 0.25rem 0.6rem;
+  font-size: var(--text-2xs);
+  font-family: var(--font-mono);
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  transition: all var(--duration-fast) ease;
+}
+
+.mode-btn:hover {
+  color: hsl(var(--fg));
+}
+
+.mode-btn.is-active {
+  background: hsl(var(--surface-card));
+  color: hsl(var(--accent));
+  border: 1px solid hsla(var(--accent), 0.3);
+  font-weight: 600;
+}
+
+/* Zero-flash layout rules before paint */
+#terminal-wrapper {
+  display: flex;
+}
+
+#classic-gui-section {
+  display: none;
+}
+
+html.mode-gui #terminal-wrapper {
+  display: none !important;
+}
+
+html.mode-gui #classic-gui-section {
+  display: block !important;
+}
+
+html.mode-gui #btn-mode-term {
+  background: transparent !important;
+  color: hsl(var(--fg-muted)) !important;
+  border: 1px solid transparent !important;
+  font-weight: normal !important;
+}
+
+html.mode-gui #btn-mode-gui {
+  background: hsl(var(--surface-card)) !important;
+  color: hsl(var(--accent)) !important;
+  border: 1px solid hsla(var(--accent), 0.3) !important;
+  font-weight: 600 !important;
+}
+
+.terminal-window {
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--code-bg));
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  margin-bottom: var(--space-8);
+  display: flex;
+  flex-direction: column;
+  min-height: 480px;
+  max-height: 720px;
+}
+
+.terminal-header-bar {
+  background: hsl(var(--bg-subtle));
+  border-bottom: 1px solid hsl(var(--border-muted));
+  padding: 0.5rem var(--space-4);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  color: hsl(var(--fg-subtle));
+  user-select: none;
+}
+
+.terminal-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.terminal-hint {
+  color: hsl(var(--accent-amber));
+  font-size: var(--text-2xs);
+}
+
+.terminal-screen {
+  flex: 1;
+  padding: var(--space-5);
+  overflow-y: auto;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  line-height: 1.6;
+  color: hsl(var(--fg));
+  cursor: text;
+}
+
+.terminal-welcome {
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px dashed hsl(var(--border-muted));
+  color: hsl(var(--fg-muted));
+}
+
+.welcome-logo {
+  color: hsl(var(--accent));
+  font-weight: bold;
+  margin-bottom: 0.4rem;
+}
+
+.terminal-history {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.term-entry {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.term-entry-cmd {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  color: hsl(var(--fg));
+}
+
+.term-output {
+  color: hsl(var(--fg-muted));
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.term-output-rich {
+  white-space: normal;
+}
+
+.term-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.4rem 0;
+}
+
+.term-table td, .term-table th {
+  padding: 0.2rem 0.5rem;
+  text-align: left;
+}
+
+.term-table th {
+  color: hsl(var(--fg-subtle));
+  border-bottom: 1px dashed hsl(var(--border-muted));
+}
+
+.term-file-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.2rem 0;
+}
+
+.term-file-name {
+  color: hsl(var(--accent));
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.term-file-name:hover {
+  color: hsl(var(--accent-cyan));
+}
+
+.term-cmd-inline {
+  color: hsl(var(--accent-amber));
+  background: hsla(var(--accent-amber), 0.1);
+  padding: 0.1rem 0.35rem;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+}
+
+.term-cmd-inline:hover {
+  background: hsla(var(--accent-amber), 0.2);
+}
+
+.term-article-box {
+  background: hsl(var(--surface-base));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius-sm);
+  padding: var(--space-4);
+  margin: 0.5rem 0;
+}
+
+.term-article-box h3 {
+  font-family: var(--font-sans);
+  color: hsl(var(--accent));
+  font-size: var(--text-md);
+  margin-bottom: 0.4rem;
+}
+
+.term-article-meta {
+  font-size: var(--text-2xs);
+  color: hsl(var(--fg-subtle));
+  margin-bottom: var(--space-3);
+  padding-bottom: 0.3rem;
+  border-bottom: 1px dashed hsl(var(--border-muted));
+}
+
+.term-article-body {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  line-height: 1.7;
+  color: hsl(var(--fg));
+  max-height: 360px;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+.term-input-line {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: var(--space-3);
+  position: relative;
+}
+
+.term-prompt {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.prompt-user { color: hsl(var(--accent-cyan)); }
+.prompt-host { color: hsl(var(--fg-muted)); }
+.prompt-path { color: hsl(var(--accent-amber)); }
+.prompt-sym { color: hsl(var(--accent-red)); font-weight: bold; }
+
+.term-input-field {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: hsl(var(--fg));
+  padding: 0;
+  margin: 0;
+  caret-color: hsl(var(--accent));
+}
+
+.term-error {
+  color: hsl(var(--accent-red));
+}
+
+.term-success {
+  color: hsl(var(--accent-green));
+}
+
+/* -------------------------------------------------------------
  * HERO CONSOLE DASHBOARD (HOMEPAGE)
  * ------------------------------------------------------------- */
 

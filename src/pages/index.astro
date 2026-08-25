@@ -1,5 +1,5 @@
 ---
-// index.astro - 极客终端控制台主页
+// index.astro - 全功能交互式终端与极客主页
 import Layout from '../layouts/Layout.astro';
 import Icon from '../components/Icon.astro';
 import { formatLogDate, calculateReadingStats, getRenderablePosts } from '../lib/site';
@@ -7,112 +7,627 @@ import { formatLogDate, calculateReadingStats, getRenderablePosts } from '../lib
 const sortedPosts = await getRenderablePosts();
 const postCount = sortedPosts.length;
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
+
+// 序列化文章数据给前端交互式 CLI 引擎使用
+const terminalPostsData = sortedPosts.map(p => {
+  const stats = calculateReadingStats(p.body || '');
+  const cleanBody = (p.body || '').replace(/^---[\s\S]*?---\n*/, '');
+  return {
+    id: p.id,
+    filename: `${p.id}.md`,
+    title: p.data.title,
+    date: formatLogDate(p.data.date),
+    description: p.data.description,
+    tags: p.data.tags || [],
+    url: `${basePath}/post/${p.id}/`,
+    readingTime: stats.timeText,
+    wordsText: stats.wordsText,
+    body: cleanBody,
+  };
+});
 ---
 
 <Layout title="Lucid Hubble">
-  <!-- Console Dashboard Hero -->
-  <section class="console-hero">
-    <div class="console-bar">
+  <!-- Zero-flash inline script before paint -->
+  <script is:inline>
+    (function() {
+      try {
+        var mode = localStorage.getItem('terminal_view_mode');
+        if (mode === 'gui') {
+          document.documentElement.classList.add('mode-gui');
+        } else {
+          document.documentElement.classList.remove('mode-gui');
+        }
+      } catch(e) {}
+    })();
+  </script>
+
+  <!-- Mode Switcher -->
+  <div class="mode-toggle-bar">
+    <div class="mode-switch-group">
+      <button id="btn-mode-term" type="button" class="mode-btn is-active" aria-pressed="true">
+        &gt;_ TERMINAL
+      </button>
+      <button id="btn-mode-gui" type="button" class="mode-btn" aria-pressed="false">
+        ▦ CLASSIC
+      </button>
+    </div>
+    <div class="terminal-hint">
+      Tip: Type <code>help</code> or <code>ls</code>
+    </div>
+  </div>
+
+  <!-- Interactive Web Terminal Emulator -->
+  <section id="terminal-wrapper" class="terminal-window">
+    <div class="terminal-header-bar">
       <div class="console-dots">
         <span class="console-dot dot-red"></span>
         <span class="console-dot dot-yellow"></span>
         <span class="console-dot dot-green"></span>
       </div>
-      <div class="console-title">lucid@hubble: ~ (zsh)</div>
-      <div class="console-sys">[UTF-8]</div>
-    </div>
-    <div class="console-body">
-      <div class="console-prompt-line">
-        <span class="console-user">lucid</span><span class="console-host">@hubble</span>:<span class="console-path">~</span>$ <span class="console-cmd">cat ./manifesto.txt</span>
+      <div class="terminal-title">lucid@hubble: ~/writings (zsh)</div>
+      <div class="terminal-actions">
+        <span>[TAB: AUTOCOMPLETE]</span>
       </div>
-      <p class="hero-statement">
-        服务端工程、分布式架构、自托管工具与日常碎片思考。记录一个纯静态、去中心化的个人数字花园。
-      </p>
-      <div class="console-metrics-grid">
-        <div class="metric-box">
-          <span class="metric-label">System Status</span>
-          <span class="metric-value green">ONLINE / 200 OK</span>
+    </div>
+
+    <div id="terminal-screen" class="terminal-screen">
+      <div class="terminal-welcome">
+        <div class="welcome-logo">
+          &gt; LUCID_HUBBLE INTERACTIVE TERMINAL v1.0.0 (x86_64-darwin)
         </div>
-        <div class="metric-box">
-          <span class="metric-label">Total Entries</span>
-          <span class="metric-value cyan">{postCount} LOGS</span>
-        </div>
-        <div class="metric-box">
-          <span class="metric-label">Primary Stack</span>
-          <span class="metric-value amber">GO / DISTRIBUTED / ASTRO</span>
-        </div>
+        <div>Type <span class="term-cmd-inline" data-cmd="help">help</span> to view available commands, or <span class="term-cmd-inline" data-cmd="ls">ls</span> to list posts.</div>
+      </div>
+
+      <div id="terminal-history" class="terminal-history"></div>
+
+      <div class="term-input-line">
+        <span class="term-prompt">
+          <span class="prompt-user">lucid</span>@<span class="prompt-host">hubble</span>:<span class="prompt-path">~/writings</span><span class="prompt-sym">$</span>
+        </span>
+        <input
+          id="term-input"
+          class="term-input-field"
+          type="text"
+          autocomplete="off"
+          autocorrect="off"
+          autocapitalize="off"
+          spellcheck="false"
+          autofocus
+        />
       </div>
     </div>
   </section>
 
-  <!-- Writings Section -->
-  <section id="blog" class="blog-section">
-    <div class="section-heading">
-      <h2 class="section-title">ENGINEERING_LOGS</h2>
-      <span class="section-count">TOTAL: {postCount}</span>
-    </div>
+  <!-- Classic GUI Section (Toggleable & SEO preserved) -->
+  <div id="classic-gui-section">
+    <!-- Console Dashboard Hero -->
+    <section class="console-hero">
+      <div class="console-bar">
+        <div class="console-dots">
+          <span class="console-dot dot-red"></span>
+          <span class="console-dot dot-yellow"></span>
+          <span class="console-dot dot-green"></span>
+        </div>
+        <div class="console-title">lucid@hubble: ~ (zsh)</div>
+        <div class="console-sys">[UTF-8]</div>
+      </div>
+      <div class="console-body">
+        <div class="console-prompt-line">
+          <span class="console-user">lucid</span><span class="console-host">@hubble</span>:<span class="console-path">~</span>$ <span class="console-cmd">cat ./manifesto.txt</span>
+        </div>
+        <p class="hero-statement">
+          服务端工程、分布式架构、自托管工具与日常碎片思考。记录一个纯静态、去中心化的个人数字花园。
+        </p>
+        <div class="console-metrics-grid">
+          <div class="metric-box">
+            <span class="metric-label">System Status</span>
+            <span class="metric-value green">ONLINE / 200 OK</span>
+          </div>
+          <div class="metric-box">
+            <span class="metric-label">Total Entries</span>
+            <span class="metric-value cyan">{postCount} LOGS</span>
+          </div>
+          <div class="metric-box">
+            <span class="metric-label">Primary Stack</span>
+            <span class="metric-value amber">GO / DISTRIBUTED / ASTRO</span>
+          </div>
+        </div>
+      </div>
+    </section>
 
-    <div id="filter-bar" class="filter-bar hidden">
-      <span>&gt; FILTER_ACTIVE: <strong id="active-tag"></strong></span>
-      <button id="clear-filter" type="button" class="clear-btn">[CLEAR_FILTER]</button>
-    </div>
+    <!-- Writings List -->
+    <section id="blog" class="blog-section">
+      <div class="section-heading">
+        <h2 class="section-title">ENGINEERING_LOGS</h2>
+        <span class="section-count">TOTAL: {postCount}</span>
+      </div>
 
-    <div id="posts-list" class="posts-list">
-      {sortedPosts.length === 0 ? (
-        <p class="empty-state">&gt; NO_LOG_ENTRIES_FOUND.</p>
-      ) : (
-        sortedPosts.map((post) => {
-          const { title, date, description, tags = [] } = post.data;
-          const stats = calculateReadingStats(post.body || '');
+      <div id="filter-bar" class="filter-bar hidden">
+        <span>&gt; FILTER_ACTIVE: <strong id="active-tag"></strong></span>
+        <button id="clear-filter" type="button" class="clear-btn">[CLEAR_FILTER]</button>
+      </div>
 
-          return (
-            <article class="post-card" data-tags={tags.join(',')}>
-              <div class="post-card-header">
-                <div class="post-timestamp">
-                  <span aria-hidden="true">[LOG]</span>
-                  <time datetime={date.toISOString()}>{formatLogDate(date)}</time>
+      <div id="posts-list" class="posts-list">
+        {sortedPosts.length === 0 ? (
+          <p class="empty-state">&gt; NO_LOG_ENTRIES_FOUND.</p>
+        ) : (
+          sortedPosts.map((post) => {
+            const { title, date, description, tags = [] } = post.data;
+            const stats = calculateReadingStats(post.body || '');
+
+            return (
+              <article class="post-card" data-tags={tags.join(',')}>
+                <div class="post-card-header">
+                  <div class="post-timestamp">
+                    <span aria-hidden="true">[LOG]</span>
+                    <time datetime={date.toISOString()}>{formatLogDate(date)}</time>
+                  </div>
+                  <div class="post-reading-time">
+                    <span>[{stats.timeText}]</span>
+                  </div>
                 </div>
-                <div class="post-reading-time">
-                  <span>[{stats.timeText}]</span>
-                </div>
-              </div>
 
-              <a href={`${basePath}/post/${post.id}/`} class="post-card-link" data-astro-prefetch>
-                <div class="post-card-title-row">
-                  <h3>{title}</h3>
-                  <Icon name="arrow-up-right" class="card-arrow" />
-                </div>
-                <p class="post-card-desc">{description}</p>
-              </a>
-
-              <div class="post-card-footer">
-                <div class="tag-list">
-                  {tags.map((tag) => (
-                    <button
-                      type="button"
-                      class="tag-btn"
-                      data-tag={tag}
-                      aria-label={`按标签 ${tag} 筛选文章`}
-                      aria-pressed="false"
-                    >
-                      [#{tag}]
-                    </button>
-                  ))}
-                </div>
-                <a href={`${basePath}/post/${post.id}/`} class="read-cta" tabindex="-1" aria-hidden="true">
-                  <span>READ_LOG</span>
-                  <span>-&gt;</span>
+                <a href={`${basePath}/post/${post.id}/`} class="post-card-link" data-astro-prefetch>
+                  <div class="post-card-title-row">
+                    <h3>{title}</h3>
+                    <Icon name="arrow-up-right" class="card-arrow" />
+                  </div>
+                  <p class="post-card-desc">{description}</p>
                 </a>
-              </div>
-            </article>
-          );
-        })
-      )}
-    </div>
-  </section>
+
+                <div class="post-card-footer">
+                  <div class="tag-list">
+                    {tags.map((tag) => (
+                      <button
+                        type="button"
+                        class="tag-btn"
+                        data-tag={tag}
+                        aria-label={`按标签 ${tag} 筛选文章`}
+                        aria-pressed="false"
+                      >
+                        [#{tag}]
+                      </button>
+                    ))}
+                  </div>
+                  <a href={`${basePath}/post/${post.id}/`} class="read-cta" tabindex="-1" aria-hidden="true">
+                    <span>READ_LOG</span>
+                    <span>-&gt;</span>
+                  </a>
+                </div>
+              </article>
+            );
+          })
+        )}
+      </div>
+    </section>
+  </div>
 </Layout>
 
+<!-- Client-side Interactive CLI Engine Data -->
+<script define:vars={{ terminalPostsData, basePath }}>
+  window.__POSTS_DATA__ = terminalPostsData;
+  window.__BASE_PATH__ = basePath;
+</script>
+
 <script>
+  // 交互式终端引擎
+  function initTerminalEmulator() {
+    const input = document.getElementById('term-input') as HTMLInputElement | null;
+    const historyContainer = document.getElementById('terminal-history');
+    const screen = document.getElementById('terminal-screen');
+    const termWrapper = document.getElementById('terminal-wrapper');
+    const classicGui = document.getElementById('classic-gui-section');
+    const btnTerm = document.getElementById('btn-mode-term');
+    const btnGui = document.getElementById('btn-mode-gui');
+
+    if (!input || !historyContainer || !screen) return;
+
+    const posts: any[] = (window as any).__POSTS_DATA__ || [];
+    const basePath: string = (window as any).__BASE_PATH__ || '';
+
+    let commandHistory: string[] = [];
+    let historyIndex = -1;
+
+    // 聚焦输入框
+    screen.addEventListener('click', () => {
+      input.focus();
+    });
+
+    // 模式切换与持久化
+    function setMode(mode: 'term' | 'gui', save = true) {
+      const isGui = mode === 'gui';
+      document.documentElement.classList.toggle('mode-gui', isGui);
+      btnTerm?.classList.toggle('is-active', !isGui);
+      btnTerm?.setAttribute('aria-pressed', (!isGui).toString());
+      btnGui?.classList.toggle('is-active', isGui);
+      btnGui?.setAttribute('aria-pressed', isGui.toString());
+      
+      if (!isGui) {
+        input?.focus();
+      }
+      if (save) {
+        localStorage.setItem('terminal_view_mode', mode);
+      }
+    }
+
+    // 初始化按钮激活态同步
+    const isCurrentGui = document.documentElement.classList.contains('mode-gui');
+    btnTerm?.classList.toggle('is-active', !isCurrentGui);
+    btnTerm?.setAttribute('aria-pressed', (!isCurrentGui).toString());
+    btnGui?.classList.toggle('is-active', isCurrentGui);
+    btnGui?.setAttribute('aria-pressed', isCurrentGui.toString());
+
+    btnTerm?.addEventListener('click', () => setMode('term'));
+    btnGui?.addEventListener('click', () => setMode('gui'));
+
+    // 全局快捷键: 按反引号 ` (Backquote) 切换模式
+    const handleGlobalKeydown = (e: KeyboardEvent) => {
+      if (e.key === '`' || e.code === 'Backquote' || e.key === '·' || e.keyCode === 192) {
+        e.preventDefault();
+        const currentMode = document.documentElement.classList.contains('mode-gui') ? 'gui' : 'term';
+        setMode(currentMode === 'term' ? 'gui' : 'term');
+      }
+    };
+
+    window.removeEventListener('keydown', (window as any).__termKeyHandler);
+    (window as any).__termKeyHandler = handleGlobalKeydown;
+    window.addEventListener('keydown', handleGlobalKeydown);
+
+    const GEEK_QUOTES = [
+      "Talk is cheap. Show me the code. — Linus Torvalds",
+      "There are only two hard things in Computer Science: cache invalidation and naming things. — Phil Karlton",
+      "There is no cloud, it's just someone else's computer.",
+      "Simplicity is prerequisite for reliability. — Edsger W. Dijkstra",
+      "First, solve the problem. Then, write the code. — John Johnson",
+      "Make it work, make it right, make it fast. — Kent Beck",
+    ];
+
+    // 执行并渲染命令输出
+    function executeCommand(rawCmd: string) {
+      const trimmed = rawCmd.trim();
+      if (!trimmed) return;
+
+      commandHistory.push(trimmed);
+      historyIndex = commandHistory.length;
+
+      const [command, ...args] = trimmed.split(/\s+/);
+      const cmd = command.toLowerCase();
+      const targetArg = args.join(' ');
+
+      // 创建历史记录 DOM
+      const entry = document.createElement('div');
+      entry.className = 'term-entry';
+
+      const cmdLine = document.createElement('div');
+      cmdLine.className = 'term-entry-cmd';
+      cmdLine.innerHTML = `<span class="term-prompt"><span class="prompt-user">lucid</span>@<span class="prompt-host">hubble</span>:<span class="prompt-path">~/writings</span><span class="prompt-sym">$</span></span> <span>${escapeHtml(trimmed)}</span>`;
+      entry.appendChild(cmdLine);
+
+      const output = document.createElement('div');
+      output.className = 'term-output';
+
+      switch (cmd) {
+        case 'help':
+          output.innerHTML = `
+<table class="term-table">
+  <tr><th>COMMAND</th><th>DESCRIPTION</th></tr>
+  <tr><td><span class="term-cmd-inline" data-cmd="ls">ls</span> / <span class="term-cmd-inline" data-cmd="ll">ll</span></td><td>List all posts as filesystem entries</td></tr>
+  <tr><td><span class="term-cmd-inline" data-cmd="cat ${posts[0]?.filename || ''}">cat &lt;file&gt;</span></td><td>Read formatted post content inside terminal</td></tr>
+  <tr><td><span class="term-cmd-inline" data-cmd="open ${posts[0]?.filename || ''}">open &lt;file&gt;</span></td><td>Navigate directly to post full page</td></tr>
+  <tr><td><span class="term-cmd-inline" data-cmd="neofetch">neofetch</span></td><td>Display system architecture & specs</td></tr>
+  <tr><td><span class="term-cmd-inline" data-cmd="fortune">fortune</span></td><td>Print a random geek quote</td></tr>
+  <tr><td><span class="term-cmd-inline" data-cmd="matrix">matrix</span></td><td>Run retro matrix digital rain animation</td></tr>
+  <tr><td><span class="term-cmd-inline" data-cmd="tags">tags</span></td><td>List all tags and associated articles</td></tr>
+  <tr><td><span class="term-cmd-inline" data-cmd="whoami">whoami / about</span></td><td>Print author info and system spec</td></tr>
+  <tr><td><span class="term-cmd-inline" data-cmd="tree">tree</span></td><td>Print directory tree of digital garden</td></tr>
+  <tr><td><span class="term-cmd-inline" data-cmd="theme">theme</span></td><td>Toggle dark / light theme</td></tr>
+  <tr><td><span class="term-cmd-inline" data-cmd="history">history</span> / <span class="term-cmd-inline" data-cmd="history -c">history -c</span></td><td>View or clear command history</td></tr>
+  <tr><td><span class="term-cmd-inline" data-cmd="clear">clear</span> / <span class="term-cmd-inline" data-cmd="reset">reset</span></td><td>Clear screen (Ctrl+L) or reset terminal</td></tr>
+</table>`;
+          break;
+
+        case 'ls':
+        case 'll':
+        case 'dir':
+          if (posts.length === 0) {
+            output.textContent = 'total 0';
+          } else {
+            let html = `<div style="color: hsl(var(--fg-subtle)); margin-bottom: 4px;">total ${posts.length}</div>`;
+            posts.forEach(p => {
+              html += `
+<div class="term-file-row">
+  <span style="color: hsl(var(--fg-subtle));">-rw-r--r--</span>
+  <span style="color: hsl(var(--fg-subtle));">1 lucid staff</span>
+  <span style="color: hsl(var(--accent-amber));">${p.wordsText}</span>
+  <span style="color: hsl(var(--fg-subtle));">${p.date}</span>
+  <span class="term-file-name" data-filename="${p.filename}">${p.filename}</span>
+  <span style="color: hsl(var(--fg-subtle)); font-size: 0.75rem;">// ${escapeHtml(p.title)}</span>
+</div>`;
+            });
+            output.innerHTML = html;
+          }
+          break;
+
+        case 'cat':
+        case 'curl':
+          if (!targetArg) {
+            output.innerHTML = `<span class="term-error">usage: ${cmd} &lt;filename&gt; (e.g. ${cmd} ${posts[0]?.filename || 'hello-world.md'})</span>`;
+          } else {
+            const normalized = targetArg.replace(/\.md$/, '').toLowerCase();
+            const found = posts.find(p => p.id.toLowerCase() === normalized || p.filename.toLowerCase() === targetArg.toLowerCase());
+            if (found) {
+              output.className = 'term-output term-output-rich';
+              const headerInfo = cmd === 'curl' ? '<div style="color: hsl(var(--accent-green)); font-size: 0.75rem; margin-bottom: 8px;">HTTP/2 200 OK<br/>content-type: text/markdown; charset=utf-8</div>' : '';
+              output.innerHTML = `
+<div class="term-article-box">
+  ${headerInfo}
+  <h3>${escapeHtml(found.title)}</h3>
+  <div class="term-article-meta">
+    <span>DATE: ${found.date}</span> · 
+    <span>READ_TIME: ${found.readingTime}</span> · 
+    <span>TAGS: [${found.tags.join(', ')}]</span>
+  </div>
+  <div class="term-article-body">${formatMarkdownBody(found.body)}</div>
+  <div style="margin-top: 10px; font-size: 0.8rem;">
+    <a href="${found.url}" style="color: hsl(var(--accent)); text-decoration: underline;">[OPEN FULL PAGE -&gt;]</a>
+  </div>
+</div>`;
+            } else {
+              output.innerHTML = `<span class="term-error">${cmd}: ${escapeHtml(targetArg)}: No such file or directory. Try 'ls' to see files.</span>`;
+            }
+          }
+          break;
+
+        case 'neofetch':
+        case 'fastfetch':
+          output.innerHTML = `
+<pre style="color: hsl(var(--accent-cyan)); font-size: 0.8rem; line-height: 1.4; margin: 0;">
+       __                  _     __ 
+      / /   __  __________(_)___/ / 
+     / /   / / / / ___/ / / __  /  
+    / /___/ /_/ / /__/ / / /_/ /   
+   /_____/\\__,_/\\___/_/_/\\__,_/    
+                                    
+   <span style="color: hsl(var(--accent));">lucid@hubble</span>
+   ------------
+   <span style="color: hsl(var(--accent-amber));">OS</span>: Astro 7.1.3 (Static Node/Vite)
+   <span style="color: hsl(var(--accent-amber));">Host</span>: GitHub Pages Edge CDN
+   <span style="color: hsl(var(--accent-amber));">Kernel</span>: Content Layer 7.0 + Zod
+   <span style="color: hsl(var(--accent-amber));">Uptime</span>: 100% (Decentralized Static)
+   <span style="color: hsl(var(--accent-amber));">Shell</span>: Web Zsh Emulator (TS/Vanilla)
+   <span style="color: hsl(var(--accent-amber));">Terminal</span>: Lucid Terminal Theme (GitHub Dark Blue)
+   <span style="color: hsl(var(--accent-amber));">Memory</span>: 0 KB Server State (Pure Client Cache)
+</pre>`;
+          break;
+
+        case 'fortune':
+        case 'quote':
+          const randomQuote = GEEK_QUOTES[Math.floor(Math.random() * GEEK_QUOTES.length)];
+          output.innerHTML = `<div style="color: hsl(var(--accent-amber)); font-style: italic;">“ ${escapeHtml(randomQuote)} ”</div>`;
+          break;
+
+        case 'matrix':
+          let matrixLines = 0;
+          const matrixInterval = setInterval(() => {
+            const line = Array.from({ length: 48 }, () => String.fromCharCode(0x30A0 + Math.floor(Math.random() * 96))).join('');
+            output.innerHTML += `<div style="color: #00f08c; font-family: monospace; font-size: 0.72rem; line-height: 1.1; opacity: 0.85;">${line}</div>`;
+            screen.scrollTop = screen.scrollHeight;
+            matrixLines++;
+            if (matrixLines > 15) {
+              clearInterval(matrixInterval);
+              output.innerHTML += `<div style="color: hsl(var(--accent)); margin-top: 6px;">[MATRIX STREAM TERMINATED]</div>`;
+              screen.scrollTop = screen.scrollHeight;
+            }
+          }, 80);
+          break;
+
+        case 'open':
+        case 'cd':
+          if (!targetArg) {
+            output.innerHTML = `<span class="term-error">usage: open &lt;filename&gt;</span>`;
+          } else {
+            const normalized = targetArg.replace(/\.md$/, '').toLowerCase();
+            const found = posts.find(p => p.id.toLowerCase() === normalized || p.filename.toLowerCase() === targetArg.toLowerCase());
+            if (found) {
+              output.innerHTML = `<span class="term-success">Opening ${escapeHtml(found.title)}...</span>`;
+              window.location.href = found.url;
+            } else {
+              output.innerHTML = `<span class="term-error">open: ${escapeHtml(targetArg)}: No such file.</span>`;
+            }
+          }
+          break;
+
+        case 'tree':
+          output.innerHTML = `
+<pre style="color: hsl(var(--accent-cyan)); margin: 0;">
+.
+├── src/content/blog/
+${posts.map((p, idx) => `${idx === posts.length - 1 ? '└──' : '├──'} ${p.filename}`).join('\n')}
+├── pages/
+│   ├── index.astro
+│   ├── about.astro
+│   └── post/[slug].astro
+└── site.config.ts
+</pre>`;
+          break;
+
+        case 'tags':
+          const tagMap: Record<string, string[]> = {};
+          posts.forEach(p => {
+            p.tags.forEach((t: string) => {
+              if (!tagMap[t]) tagMap[t] = [];
+              tagMap[t].push(p.filename);
+            });
+          });
+          let tagHtml = '<div style="display: flex; flex-direction: column; gap: 4px;">';
+          for (const [tag, files] of Object.entries(tagMap)) {
+            tagHtml += `<div><span style="color: hsl(var(--accent));">[#${escapeHtml(tag)}]</span> -> ${files.map(f => `<span class="term-file-name" data-filename="${f}">${f}</span>`).join(', ')}</div>`;
+          }
+          tagHtml += '</div>';
+          output.innerHTML = tagHtml;
+          break;
+
+        case 'whoami':
+        case 'about':
+        case 'man':
+          output.innerHTML = `
+<div style="line-height: 1.6;">
+  <div><strong style="color: hsl(var(--accent));">Lucid</strong> — Server-side Engineer & Infrastructure Enthusiast.</div>
+  <div style="color: hsl(var(--fg-muted)); margin-top: 4px;">Building minimal, durable, and decentralized digital artifacts.</div>
+  <div style="margin-top: 6px;"><a href="${basePath}/about/" style="color: hsl(var(--accent-cyan)); text-decoration: underline;">[View Full Profile: ~/about -&gt;]</a></div>
+</div>`;
+          break;
+
+        case 'theme':
+          const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+          const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+          document.documentElement.setAttribute('data-theme', newTheme);
+          localStorage.setItem('theme', newTheme);
+          output.innerHTML = `<span class="term-success">Theme changed to: ${newTheme}</span>`;
+          break;
+
+        case 'clear':
+        case 'cls':
+          if (targetArg === '-a' || targetArg === '--all') {
+            commandHistory = [];
+            historyIndex = -1;
+          }
+          historyContainer.innerHTML = '';
+          return;
+
+        case 'reset':
+          commandHistory = [];
+          historyIndex = -1;
+          historyContainer.innerHTML = '';
+          return;
+
+        case 'history':
+          if (targetArg === '-c' || targetArg === '--clear' || targetArg === 'clear') {
+            commandHistory = [];
+            historyIndex = -1;
+            output.innerHTML = `<span class="term-success">Command history cleared.</span>`;
+            break;
+          }
+          if (commandHistory.length === 0) {
+            output.innerHTML = `<span style="color: hsl(var(--fg-subtle));">No command history recorded.</span>`;
+          } else {
+            output.innerHTML = commandHistory.map((h, i) => `<div>${i + 1}  ${escapeHtml(h)}</div>`).join('');
+          }
+          break;
+
+        case 'gui':
+        case 'classic':
+          setMode('gui');
+          output.innerHTML = `<span class="term-success">Switched to classic grid view. (Press \` to toggle)</span>`;
+          break;
+
+        case 'date':
+          output.textContent = new Date().toUTCString();
+          break;
+
+        case 'echo':
+          output.textContent = targetArg;
+          break;
+
+        default:
+          output.innerHTML = `<span class="term-error">zsh: command not found: ${escapeHtml(cmd)}. Type <span class="term-cmd-inline" data-cmd="help">help</span> for available commands.</span>`;
+          break;
+      }
+
+      entry.appendChild(output);
+      historyContainer.appendChild(entry);
+
+      // 滚动到底部
+      screen.scrollTop = screen.scrollHeight;
+    }
+
+    // 辅助转义
+    function escapeHtml(text: string) {
+      return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    // 简单 Markdown 转 HTML
+    function formatMarkdownBody(body: string) {
+      return body
+        .replace(/^## (.*$)/gim, '<h4 style="color: hsl(var(--accent-cyan)); margin: 12px 0 6px;">$1</h4>')
+        .replace(/^# (.*$)/gim, '<h3 style="color: hsl(var(--accent)); margin: 14px 0 6px;">$1</h3>')
+        .replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>')
+        .replace(/`([^`]+)`/gim, '<code style="color: hsl(var(--accent)); background: hsla(0,0%,50%,0.15); padding: 2px 4px; border-radius: 3px;">$1</code>')
+        .replace(/\n\n/gim, '<br/><br/>');
+    }
+
+    // 输入框按键监听
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const val = input.value;
+        input.value = '';
+        executeCommand(val);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (commandHistory.length > 0 && historyIndex > 0) {
+          historyIndex--;
+          input.value = commandHistory[historyIndex] || '';
+        }
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (historyIndex < commandHistory.length - 1) {
+          historyIndex++;
+          input.value = commandHistory[historyIndex] || '';
+        } else {
+          historyIndex = commandHistory.length;
+          input.value = '';
+        }
+      } else if (e.key === 'Tab') {
+        e.preventDefault();
+        const current = input.value.trim();
+        const commands = ['help', 'ls', 'll', 'cat', 'open', 'tree', 'tags', 'whoami', 'about', 'theme', 'clear', 'gui'];
+        const filenames = posts.map(p => p.filename);
+
+        if (current.startsWith('cat ') || current.startsWith('open ')) {
+          const prefix = current.split(' ')[1] || '';
+          const match = filenames.find(f => f.startsWith(prefix));
+          if (match) {
+            input.value = `${current.split(' ')[0]} ${match}`;
+          }
+        } else {
+          const match = commands.find(c => c.startsWith(current));
+          if (match) {
+            input.value = match;
+          }
+        }
+      } else if (e.ctrlKey && e.key.toLowerCase() === 'l') {
+        e.preventDefault();
+        historyContainer.innerHTML = '';
+      }
+    });
+
+    // 代理点击事件（点击文件名或内联命令直接执行）
+    screen.addEventListener('click', (e) => {
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+
+      const fileEl = target.closest('.term-file-name') as HTMLElement | null;
+      if (fileEl) {
+        const filename = fileEl.getAttribute('data-filename') || '';
+        input.value = `cat ${filename}`;
+        executeCommand(`cat ${filename}`);
+        input.value = '';
+        return;
+      }
+
+      const cmdEl = target.closest('.term-cmd-inline') as HTMLElement | null;
+      if (cmdEl) {
+        const cmd = cmdEl.getAttribute('data-cmd') || '';
+        input.value = cmd;
+        executeCommand(cmd);
+        input.value = '';
+        return;
+      }
+    });
+  }
+
+  // 经典标签过滤逻辑
   function initTagFilter() {
     const blogSection = document.getElementById('blog');
     if (!blogSection || blogSection.dataset.filterReady === 'true') return;
@@ -168,7 +683,9 @@ const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
   }
 
   document.addEventListener('astro:page-load', () => {
+    initTerminalEmulator();
     initTagFilter();
   });
 </script>
+
 
