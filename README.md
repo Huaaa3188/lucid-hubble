@@ -1,7 +1,7 @@
 # Lucid Hubble
 
-一个基于 Astro 6 的静态个人博客。内容由 Markdown 管理，构建产物通过 GitHub Actions 发布到 GitHub Pages：
-[https://huaaa3188.github.io/lucid-hubble/](https://Huaaa3188.github.io/lucid-hubble/)
+一个基于 Astro 7 的静态个人博客。内容由 Markdown 管理，构建产物通过 GitHub Actions 发布到 GitHub Pages：
+[https://huaaa3188.github.io/lucid-hubble/](https://huaaa3188.github.io/lucid-hubble/)
 
 当前正式 canonical 仍指向 GitHub Pages 子路径。如果以后迁到自定义域名，需要同步更新 `astro.config.mjs` 和 `scripts/check-dist.mjs`。
 
@@ -129,7 +129,7 @@ npm run verify
 当前 `astro.config.mjs`：
 
 ```js
-site: 'https://Huaaa3188.github.io',
+site: 'https://huaaa3188.github.io',
 base: '/lucid-hubble',
 ```
 

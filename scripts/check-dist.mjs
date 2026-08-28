@@ -57,7 +57,7 @@ function collectMarkdownFiles(dir, base = dir) {
   });
 }
 
-function parseFrontmatter(markdown) {
+function parseFrontmatter(markdown, sourceLabel) {
   const match = markdown.match(/^---\n([\s\S]*?)\n---/);
   const data = {};
 
@@ -74,6 +74,9 @@ function parseFrontmatter(markdown) {
       data[key] = true;
     } else if (value === 'false') {
       data[key] = false;
+    } else if (key === 'draft') {
+      // draft 解析失败会让草稿泄漏检查静默失效，必须直接报错
+      throw new Error(`${sourceLabel}: draft 字段无法解析为 true/false（实际值: ${value || '空'}），请使用单行语法 draft: true`);
     } else {
       data[key] = value.replace(/^["']|["']$/g, '');
     }
@@ -86,7 +89,7 @@ function getContentEntries() {
   return collectMarkdownFiles(contentDir).map((filePath) => {
     const relativePath = path.relative(contentDir, filePath);
     const id = relativePath.replace(/\.md$/, '').split(path.sep).join('/');
-    const frontmatter = parseFrontmatter(readText(filePath));
+    const frontmatter = parseFrontmatter(readText(filePath), relativePath);
 
     return {
       id,
