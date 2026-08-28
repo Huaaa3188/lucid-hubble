@@ -8,10 +8,9 @@ const sortedPosts = await getRenderablePosts();
 const postCount = sortedPosts.length;
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
 
-// 序列化文章数据给前端交互式 CLI 引擎使用
+// 序列化文章数据给前端交互式 CLI 引擎使用（仅元信息与摘要，避免全文内联进首页）
 const terminalPostsData = sortedPosts.map(p => {
   const stats = calculateReadingStats(p.body || '');
-  const cleanBody = (p.body || '').replace(/^---[\s\S]*?---\n*/, '');
   return {
     id: p.id,
     filename: `${p.id}.md`,
@@ -22,7 +21,6 @@ const terminalPostsData = sortedPosts.map(p => {
     url: `${basePath}/post/${p.id}/`,
     readingTime: stats.timeText,
     wordsText: stats.wordsText,
-    body: cleanBody,
   };
 });
 ---
@@ -261,9 +259,10 @@ const terminalPostsData = sortedPosts.map(p => {
     btnTerm?.addEventListener('click', () => setMode('term'));
     btnGui?.addEventListener('click', () => setMode('gui'));
 
-    // 全局快捷键: 按反引号 ` (Backquote) 切换模式
+    // 全局快捷键: 按反引号 ` (Backquote) 切换模式；输入框聚焦时放行字符本身
     const handleGlobalKeydown = (e: KeyboardEvent) => {
       if (e.key === '`' || e.code === 'Backquote' || e.key === '·' || e.keyCode === 192) {
+        if (document.activeElement === input) return;
         e.preventDefault();
         const currentMode = document.documentElement.classList.contains('mode-gui') ? 'gui' : 'term';
         setMode(currentMode === 'term' ? 'gui' : 'term');
@@ -313,7 +312,7 @@ const terminalPostsData = sortedPosts.map(p => {
 <table class="term-table">
   <tr><th>COMMAND</th><th>DESCRIPTION</th></tr>
   <tr><td><span class="term-cmd-inline" data-cmd="ls">ls</span> / <span class="term-cmd-inline" data-cmd="ll">ll</span></td><td>List all posts as filesystem entries</td></tr>
-  <tr><td><span class="term-cmd-inline" data-cmd="cat ${posts[0]?.filename || ''}">cat &lt;file&gt;</span></td><td>Read formatted post content inside terminal</td></tr>
+  <tr><td><span class="term-cmd-inline" data-cmd="cat ${posts[0]?.filename || ''}">cat &lt;file&gt;</span></td><td>Preview post summary, then open the full page</td></tr>
   <tr><td><span class="term-cmd-inline" data-cmd="open ${posts[0]?.filename || ''}">open &lt;file&gt;</span></td><td>Navigate directly to post full page</td></tr>
   <tr><td><span class="term-cmd-inline" data-cmd="neofetch">neofetch</span></td><td>Display system architecture & specs</td></tr>
   <tr><td><span class="term-cmd-inline" data-cmd="fortune">fortune</span></td><td>Print a random geek quote</td></tr>
@@ -364,13 +363,14 @@ const terminalPostsData = sortedPosts.map(p => {
   ${headerInfo}
   <h3>${escapeHtml(found.title)}</h3>
   <div class="term-article-meta">
-    <span>DATE: ${found.date}</span> · 
-    <span>READ_TIME: ${found.readingTime}</span> · 
+    <span>DATE: ${found.date}</span> ·
+    <span>READ_TIME: ${found.readingTime}</span> ·
     <span>TAGS: [${found.tags.join(', ')}]</span>
   </div>
-  <div class="term-article-body">${formatMarkdownBody(found.body)}</div>
-  <div style="margin-top: 10px; font-size: 0.8rem;">
+  <div class="term-article-body">${escapeHtml(found.description)}</div>
+  <div style="margin-top: 10px; font-size: 0.8rem; display: flex; gap: 12px; align-items: center;">
     <a href="${found.url}" style="color: hsl(var(--accent)); text-decoration: underline;">[OPEN FULL PAGE -&gt;]</a>
+    <span class="term-cmd-inline" data-cmd="open ${found.filename}">open ${found.filename}</span>
   </div>
 </div>`;
             } else {
@@ -545,16 +545,6 @@ ${posts.map((p, idx) => `${idx === posts.length - 1 ? '└──' : '├──'}
     // 辅助转义
     function escapeHtml(text: string) {
       return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    }
-
-    // 简单 Markdown 转 HTML
-    function formatMarkdownBody(body: string) {
-      return body
-        .replace(/^## (.*$)/gim, '<h4 style="color: hsl(var(--accent-cyan)); margin: 12px 0 6px;">$1</h4>')
-        .replace(/^# (.*$)/gim, '<h3 style="color: hsl(var(--accent)); margin: 14px 0 6px;">$1</h3>')
-        .replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>')
-        .replace(/`([^`]+)`/gim, '<code style="color: hsl(var(--accent)); background: hsla(0,0%,50%,0.15); padding: 2px 4px; border-radius: 3px;">$1</code>')
-        .replace(/\n\n/gim, '<br/><br/>');
     }
 
     // 输入框按键监听

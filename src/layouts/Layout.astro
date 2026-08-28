@@ -78,7 +78,10 @@ const jsonLd = structuredData ? JSON.stringify(structuredData).replace(/</g, '\\
     const applyTheme = () => {
       const savedTheme = localStorage.getItem('theme');
       const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      const theme = savedTheme === 'light' ? 'light' : (!savedTheme && !systemPrefersDark ? 'light' : 'dark');
+      let theme = 'dark';
+      if (savedTheme === 'light' || (!savedTheme && !systemPrefersDark)) {
+        theme = 'light';
+      }
 
       document.documentElement.setAttribute('data-theme', theme);
 
