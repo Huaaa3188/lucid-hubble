@@ -2,9 +2,9 @@
 // about.astro - 极客工程系统档案 / manual page
 import Layout from '../layouts/Layout.astro';
 import Icon from '../components/Icon.astro';
+import { getSitePath } from '../lib/site';
 
-const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
-const writingUrl = `${basePath}/#blog`;
+const writingUrl = getSitePath('#blog');
 
 const principles = [
   {
@@ -88,9 +88,9 @@ const principles = [
         </div>
       </section>
 
-      <section class="man-section" style="margin-bottom: 0;">
+      <section class="man-section man-section-last">
         <h2 class="man-title">:: SYSTEM_ENVIRONMENT</h2>
-        <div class="man-card" style="font-family: var(--font-mono); font-size: var(--text-2xs); line-height: 1.7; color: hsl(var(--fg-muted));">
+        <div class="man-card system-environment-card">
           <p>&gt; ENGINE: Astro 7.x (Content Layer + Speculation Rules)</p>
           <p>&gt; RUNTIME: Zero Client JS (Vanilla DOM Enhancements)</p>
           <p>&gt; HOSTING: GitHub Pages Static Deployment</p>
@@ -100,4 +100,3 @@ const principles = [
     </div>
   </div>
 </Layout>
-

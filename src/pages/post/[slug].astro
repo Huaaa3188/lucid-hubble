@@ -3,11 +3,19 @@
 import { render } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
 import Icon from '../../components/Icon.astro';
-import { formatLogDate, calculateReadingStats, getRenderablePosts } from '../../lib/site';
+import {
+  calculateReadingStats,
+  formatLogDate,
+  getPostPath,
+  getPostUrl,
+  getPosts,
+  getSitePath,
+  siteConfig,
+} from '../../lib/site';
 
 // 1. 声明所有可能生成的静态 URL 路径并注入上一篇/下一篇上下文
 export async function getStaticPaths() {
-  const posts = await getRenderablePosts();
+  const posts = await getPosts();
   return posts.map((post, index) => {
     // 列表按时间降序：index + 1 为更早的文章 (PREV)，index - 1 为更新的文章 (NEXT)
     const prevPost = index < posts.length - 1 ? posts[index + 1] : null;
@@ -22,9 +30,8 @@ export async function getStaticPaths() {
 // 2. 从参数和 props 中获取当前页面对应的文章数据
 const { post, prevPost, nextPost } = Astro.props;
 const { title, date, description, tags = [] } = post.data;
-const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
-const homeUrl = `${basePath}/`;
-const postUrl = new URL(`${basePath}/post/${post.id}/`, Astro.site ?? Astro.url).toString();
+const homeUrl = getSitePath();
+const postUrl = getPostUrl(post.id);
 const stats = calculateReadingStats(post.body || '');
 
 const structuredData = {
@@ -48,7 +55,7 @@ const structuredData = {
 
 // 3. 将 Markdown 静态渲染编译为可在 Astro 中直接嵌套使用的组件，并获取 headings 用于 TOC
 const { Content, headings = [] } = await render(post);
-const tocHeadings = headings.filter(h => h.depth === 2 || h.depth === 3);
+const tocHeadings = headings.filter((heading) => heading.depth === 2 || heading.depth === 3);
 ---
 
 <Layout
@@ -105,7 +112,7 @@ const tocHeadings = headings.filter(h => h.depth === 2 || h.depth === 3);
 
       <!-- 版权卡片 -->
       <div class="post-copyright" aria-label="文章版权信息">
-        <p>&gt; AUTHOR: Lucid</p>
+        <p>&gt; AUTHOR: {siteConfig.author}</p>
         <p>&gt; CANONICAL_URL: <a href={postUrl}>{postUrl}</a></p>
         <p>&gt; PERMISSION: CC BY-NC-SA 4.0 // 转载请注明原文出处与作者。</p>
       </div>
@@ -114,7 +121,7 @@ const tocHeadings = headings.filter(h => h.depth === 2 || h.depth === 3);
       {(prevPost || nextPost) && (
         <nav class="post-nav-grid" aria-label="文章导航">
           {prevPost ? (
-            <a href={`${basePath}/post/${prevPost.id}/`} class="post-nav-card">
+            <a href={getPostPath(prevPost.id)} class="post-nav-card">
               <span class="post-nav-direction">&lt; PREV_LOG</span>
               <span class="post-nav-title">{prevPost.data.title}</span>
             </a>
@@ -122,7 +129,7 @@ const tocHeadings = headings.filter(h => h.depth === 2 || h.depth === 3);
             <div></div>
           )}
           {nextPost ? (
-            <a href={`${basePath}/post/${nextPost.id}/`} class="post-nav-card" style="text-align: right;">
+            <a href={getPostPath(nextPost.id)} class="post-nav-card post-nav-card-next">
               <span class="post-nav-direction">NEXT_LOG &gt;</span>
               <span class="post-nav-title">{nextPost.data.title}</span>
             </a>
@@ -153,4 +160,3 @@ const tocHeadings = headings.filter(h => h.depth === 2 || h.depth === 3);
     )}
   </div>
 </Layout>
-

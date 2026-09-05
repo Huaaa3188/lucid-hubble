@@ -28,10 +28,17 @@
 └── src/
     ├── content.config.ts          # Content Layer schema
     ├── content/blog/              # Markdown 文章源
-    ├── layouts/Layout.astro       # 全站布局、head、导航、页脚和客户端脚本
-    ├── lib/site.ts                # 站点 URL、XML 转义、已发布文章查询
+    ├── layouts/Layout.astro       # 全站布局、head、导航与页脚
+    ├── lib/site.ts                # 站点/文章 URL、内容查询、XML 转义
+    ├── scripts/
+    │   ├── site.ts                # 主题、阅读进度、代码复制与 TOC
+    │   ├── home.ts                # 首页交互初始化与页面切换清理
+    │   ├── terminal.ts            # 终端模拟器与命令处理
+    │   ├── tag-filter.ts          # 经典文章标签筛选
+    │   ├── theme.ts               # 主题状态与无障碍标签同步
+    │   └── types.ts               # 客户端交互数据类型
     ├── pages/
-    │   ├── index.astro            # 首页与标签筛选
+    │   ├── index.astro            # 首页与文章列表标记
     │   ├── about.astro            # About 页面
     │   ├── post/[slug].astro      # 文章详情页
     │   ├── robots.txt.ts          # robots.txt
@@ -138,6 +145,7 @@ base: '/lucid-hubble',
 ## 维护注意事项
 
 - 改 Frontmatter schema 时，同步检查 `src/content/blog/` 和 `scripts/new-post.mjs`。
+- 改首页或全站交互时，优先检查 `src/scripts/` 中对应模块，并验证 Astro 页面切换后的重新初始化。
 - 改 URL、canonical、RSS、sitemap、robots 时，必须跑 `npm run verify`。
 - 不要提前把 canonical 切到尚未正式承载的域名。
 - 生产环境不应包含 `draft: true` 文章；`scripts/check-dist.mjs` 会检查这一点。

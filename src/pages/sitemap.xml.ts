@@ -1,8 +1,8 @@
 import type { APIRoute } from 'astro';
-import { escapeXml, formatSitemapDate, getPublishedPosts, getSiteUrl } from '../lib/site';
+import { escapeXml, formatSitemapDate, getPostUrl, getPosts, getSiteUrl } from '../lib/site';
 
 export const GET: APIRoute = async () => {
-  const posts = await getPublishedPosts();
+  const posts = await getPosts({ includeDrafts: false });
   const latestPostDate = posts[0]?.data.date;
 
   const pages = [
@@ -14,7 +14,7 @@ export const GET: APIRoute = async () => {
       loc: getSiteUrl('about/'),
     },
     ...posts.map((post) => ({
-      loc: getSiteUrl(`post/${post.id}/`),
+      loc: getPostUrl(post.id),
       lastmod: formatSitemapDate(post.data.date),
     })),
   ];

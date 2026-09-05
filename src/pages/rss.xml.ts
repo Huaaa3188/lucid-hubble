@@ -1,16 +1,13 @@
 import type { APIRoute } from 'astro';
-import { escapeXml, getPublishedPosts, getSiteUrl } from '../lib/site';
-
-const siteTitle = 'Lucid Hubble';
-const siteDescription = '服务端工程、开发工具、读书与日常随笔。';
+import { escapeXml, getPostUrl, getPosts, getSiteUrl, siteConfig } from '../lib/site';
 
 export const GET: APIRoute = async () => {
-  const posts = await getPublishedPosts();
+  const posts = await getPosts({ includeDrafts: false });
   const latestPostDate = posts[0]?.data.date ?? new Date();
 
   const items = posts
     .map((post) => {
-      const url = getSiteUrl(`post/${post.id}/`);
+      const url = getPostUrl(post.id);
       const categories = post.data.tags
         .map((tag) => `<category>${escapeXml(tag)}</category>`)
         .join('');
@@ -30,9 +27,9 @@ export const GET: APIRoute = async () => {
     `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>${escapeXml(siteTitle)}</title>
+    <title>${escapeXml(siteConfig.name)}</title>
     <link>${escapeXml(getSiteUrl())}</link>
-    <description>${escapeXml(siteDescription)}</description>
+    <description>${escapeXml(siteConfig.description)}</description>
     <language>zh-CN</language>
     <lastBuildDate>${latestPostDate.toUTCString()}</lastBuildDate>
     <atom:link href="${escapeXml(getSiteUrl('rss.xml'))}" rel="self" type="application/rss+xml" />

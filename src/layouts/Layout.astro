@@ -2,7 +2,7 @@
 // Layout.astro - 极客工程与终端控制台全局母版
 import '../styles/global.css';
 import { ClientRouter } from 'astro:transitions';
-import { getSiteUrl } from '../lib/site';
+import { getSitePath, getSiteUrl, serializeJson, siteBasePath, siteConfig } from '../lib/site';
 import Icon from '../components/Icon.astro';
 
 interface Props {
@@ -10,7 +10,7 @@ interface Props {
   description?: string;
   keywords?: string;
   canonicalUrl?: string;
-  ogType?: "website" | "article";
+  ogType?: 'website' | 'article';
   ogImage?: string;
   publishedTime?: string;
   structuredData?: Record<string, unknown>;
@@ -19,29 +19,28 @@ interface Props {
 
 const {
   title,
-  description = "服务端工程、开发工具、读书与日常随笔。",
-  keywords = "服务端工程, 开发工具, 读书笔记, 日常随笔, Astro博客",
+  description = siteConfig.description,
+  keywords = '服务端工程, 开发工具, 读书笔记, 日常随笔, Astro博客',
   canonicalUrl: canonicalUrlProp,
-  ogType = "website",
+  ogType = 'website',
   ogImage: ogImageProp,
   publishedTime,
   structuredData,
-  wide = false
+  wide = false,
 } = Astro.props;
 
-const basePath = import.meta.env.BASE_URL.replace(/\/$/, '');
-const homeUrl = `${basePath}/`;
-const writingUrl = `${basePath}/#blog`;
-const aboutUrl = `${basePath}/about/`;
+const homeUrl = getSitePath();
+const writingUrl = getSitePath('#blog');
+const aboutUrl = getSitePath('about/');
 const pagePath = Astro.url.pathname.endsWith('/') ? Astro.url.pathname : `${Astro.url.pathname}/`;
-const canonicalPath = pagePath.startsWith(homeUrl) ? pagePath : `${basePath}${pagePath}`;
+const canonicalPath = pagePath.startsWith(siteBasePath) ? pagePath : `${siteBasePath}${pagePath}`;
 const canonicalUrl = canonicalUrlProp ?? new URL(canonicalPath, Astro.site ?? Astro.url).toString();
 const ogImage = ogImageProp ?? getSiteUrl('og-default.png');
 const isAboutPage = canonicalPath.startsWith(aboutUrl);
 const isWritingPage = !isAboutPage;
-const githubUrl = "https://github.com/huaaa3188";
+const githubUrl = siteConfig.githubUrl;
 const rssUrl = getSiteUrl('rss.xml');
-const jsonLd = structuredData ? JSON.stringify(structuredData).replace(/</g, '\\u003c') : undefined;
+const jsonLd = structuredData ? serializeJson(structuredData) : undefined;
 ---
 
 <!DOCTYPE html>
@@ -50,15 +49,15 @@ const jsonLd = structuredData ? JSON.stringify(structuredData).replace(/</g, '\\
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{title}</title>
-  
+
   <ClientRouter />
-  
+
   <!-- SEO Meta Tags -->
   <meta name="description" content={description}>
   <meta name="keywords" content={keywords}>
-  <meta name="author" content="Lucid">
+  <meta name="author" content={siteConfig.author}>
   <link rel="canonical" href={canonicalUrl}>
-  <meta property="og:site_name" content="Lucid Hubble">
+  <meta property="og:site_name" content={siteConfig.name}>
   <meta property="og:title" content={title}>
   <meta property="og:description" content={description}>
   <meta property="og:url" content={canonicalUrl}>
@@ -67,12 +66,12 @@ const jsonLd = structuredData ? JSON.stringify(structuredData).replace(/</g, '\\
   {publishedTime && <meta property="article:published_time" content={publishedTime}>}
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:image" content={ogImage}>
-  <link rel="alternate" type="application/rss+xml" title="Lucid Hubble" href={rssUrl}>
+  <link rel="alternate" type="application/rss+xml" title={siteConfig.name} href={rssUrl}>
   {jsonLd && <script type="application/ld+json" set:html={jsonLd}></script>}
-  
+
   <!-- Terminal Favicon -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230d1117'/><text x='16' y='68' font-family='monospace' font-weight='bold' font-size='56' fill='%2358a6ff'>&gt;_</text></svg>">
-  
+
   <!-- Theme before paint -->
   <script is:inline>
     const applyTheme = () => {
@@ -131,7 +130,7 @@ const jsonLd = structuredData ? JSON.stringify(structuredData).replace(/</g, '\\
 
     <footer class="site-footer">
       <div>
-        <span>[SYS_READY]</span> &copy; 2026 Lucid Hubble. All systems nominal.
+        <span>[SYS_READY]</span> &copy; 2026 {siteConfig.name}. All systems nominal.
       </div>
       <div class="footer-socials">
         <a href={githubUrl} target="_blank" rel="noopener noreferrer" aria-label="GitHub">
@@ -144,138 +143,6 @@ const jsonLd = structuredData ? JSON.stringify(structuredData).replace(/</g, '\\
     </footer>
   </div>
 
-  <script>
-    function syncThemeAria() {
-      const themeToggleBtn = document.getElementById('theme-toggle');
-      if (!themeToggleBtn) return;
-      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-      themeToggleBtn.setAttribute('aria-label', isDark ? '切换至亮色模式' : '切换至暗色模式');
-    }
-
-    function handleToggle() {
-      const currentTheme = document.documentElement.getAttribute('data-theme');
-      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-      document.documentElement.setAttribute('data-theme', newTheme);
-      localStorage.setItem('theme', newTheme);
-      syncThemeAria();
-    }
-
-    function initThemeToggle() {
-      const themeToggleBtn = document.getElementById('theme-toggle');
-      if (!themeToggleBtn) return;
-      themeToggleBtn.removeEventListener('click', handleToggle);
-      themeToggleBtn.addEventListener('click', handleToggle);
-      syncThemeAria();
-    }
-
-    function updateProgress() {
-      const progressBar = document.getElementById('read-progress');
-      if (!progressBar) return;
-
-      const scrollTop = window.scrollY || document.documentElement.scrollTop;
-      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-      const scrollPercent = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
-      progressBar.style.width = `${scrollPercent}%`;
-    }
-
-    function initProgressBar() {
-      const progressBar = document.getElementById('read-progress');
-      if (!progressBar) return;
-
-      window.removeEventListener('scroll', updateProgress);
-
-      const isArticlePage = document.querySelector('article.post-detail-article');
-      if (!isArticlePage) {
-        progressBar.style.width = '0%';
-        return;
-      }
-
-      window.addEventListener('scroll', updateProgress);
-      updateProgress();
-    }
-
-    function initCodeBlocks() {
-      const pres = document.querySelectorAll<HTMLPreElement>('.post-content pre');
-      pres.forEach((pre) => {
-        if (pre.parentElement?.classList.contains('code-wrapper')) return;
-
-        const wrapper = document.createElement('div');
-        wrapper.className = 'code-wrapper';
-
-        const header = document.createElement('div');
-        header.className = 'code-header';
-
-        const dots = document.createElement('div');
-        dots.className = 'console-dots';
-        dots.innerHTML = '<span class="console-dot dot-red"></span><span class="console-dot dot-yellow"></span><span class="console-dot dot-green"></span>';
-
-        const lang = pre.getAttribute('data-language') || 'code';
-        const langEl = document.createElement('span');
-        langEl.className = 'code-lang';
-        langEl.textContent = `[${lang.toUpperCase()}]`;
-
-        const copyBtn = document.createElement('button');
-        copyBtn.className = 'copy-btn';
-        copyBtn.type = 'button';
-        copyBtn.textContent = 'COPY';
-        copyBtn.setAttribute('aria-label', '复制代码');
-
-        copyBtn.addEventListener('click', async () => {
-          const codeText = pre.querySelector('code')?.innerText || pre.innerText;
-          try {
-            await navigator.clipboard.writeText(codeText);
-            copyBtn.textContent = 'COPIED ✓';
-            copyBtn.classList.add('copied');
-            setTimeout(() => {
-              copyBtn.textContent = 'COPY';
-              copyBtn.classList.remove('copied');
-            }, 2000);
-          } catch (err) {
-            console.error('Failed to copy code: ', err);
-          }
-        });
-
-        header.appendChild(dots);
-        header.appendChild(langEl);
-        header.appendChild(copyBtn);
-
-        pre.parentNode?.insertBefore(wrapper, pre);
-        wrapper.appendChild(header);
-        wrapper.appendChild(pre);
-      });
-    }
-
-    function initTocScrollSpy() {
-      const headings = document.querySelectorAll<HTMLElement>('.post-content h2, .post-content h3');
-      const tocLinks = document.querySelectorAll<HTMLAnchorElement>('.toc-link');
-      if (!headings.length || !tocLinks.length) return;
-
-      const observer = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              const id = entry.target.getAttribute('id');
-              tocLinks.forEach((link) => {
-                const href = link.getAttribute('href') || '';
-                const isActive = href === `#${id}`;
-                link.classList.toggle('is-active', isActive);
-              });
-            }
-          });
-        },
-        { rootMargin: '-20% 0px -70% 0px' }
-      );
-
-      headings.forEach((h) => observer.observe(h));
-    }
-
-    document.addEventListener('astro:page-load', () => {
-      initThemeToggle();
-      initProgressBar();
-      initCodeBlocks();
-      initTocScrollSpy();
-    });
-  </script>
+  <script src="../scripts/site.ts"></script>
 </body>
 </html>
-

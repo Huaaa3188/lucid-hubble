@@ -9,24 +9,24 @@
   --surface-base: 215 21% 11%;    /* #161b22 Console Base */
   --surface-card: 215 20% 14%;    /* #1c212c Elevated Card */
   --surface-hover: 215 18% 18%;   /* #252b39 Hover State */
-  
+
   --border: 215 14% 22%;          /* #30363d Clean Tech Border */
   --border-muted: 215 12% 16%;    /* #21262d */
   --border-glow: 212 100% 67%;    /* #58a6ff Terminal Blue Glow */
-  
+
   --fg: 210 24% 94%;              /* #ecf2f8 High Contrast Text */
   --fg-muted: 215 14% 65%;        /* #8b949e Slate Muted Text */
   --fg-subtle: 215 12% 45%;       /* #545d68 Dim Tech Text */
-  
+
   --accent: 212 100% 67%;         /* #58a6ff Crisp Terminal Blue (from [vite]/[200]) */
   --accent-amber: 40 95% 58%;     /* #e3b341 Warning / Amber (from 'update' pill) */
   --accent-green: 135 60% 55%;    /* #3fb950 Mint Green (from 'astro' badge & status) */
   --accent-cyan: 195 100% 65%;    /* #4dd0e1 Info Cyan */
   --accent-red: 355 85% 65%;      /* #f85149 Terminal Prompt Coral Red */
-  
+
   --code-bg: 215 25% 9%;          /* #10141a Pure Code Background */
   --dot-color: rgba(88, 166, 255, 0.05); /* Modern Blue Dot Matrix */
-  
+
   /* Type Families */
   --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", "Helvetica Neue", Arial, sans-serif;
   --font-mono: "JetBrains Mono", "Cascadia Code", "SF Mono", "Fira Code", Menlo, Monaco, Consolas, "PingFang SC", monospace;
@@ -44,7 +44,7 @@
   --text-xl: 1.4rem;
   --text-hero: clamp(1.65rem, 4.5vw, 2.25rem);
   --text-display: clamp(1.5rem, 4vw, 2rem);
-  
+
   /* Rhythm & Spacing */
   --leading-tight: 1.25;
   --leading-snug: 1.45;
@@ -63,7 +63,7 @@
   --space-8: 3rem;
   --space-9: 4rem;
   --space-page-x: 1.5rem;
-  
+
   --radius-xs: 3px;
   --radius-sm: 5px;
   --radius-md: 8px;
@@ -98,21 +98,21 @@
   --surface-base: 0 0% 100%;      /* #ffffff Pure Surface */
   --surface-card: 210 25% 99%;    /* #fcfdff Crisp Card */
   --surface-hover: 210 20% 94%;   /* #edf1f6 */
-  
+
   --border: 215 16% 82%;          /* #cbd5e1 Crisp Technical Border */
   --border-muted: 215 14% 88%;    /* #e2e8f0 */
   --border-glow: 212 90% 45%;     /* #0969da Technical Blue */
-  
+
   --fg: 220 25% 12%;              /* #141820 Deep Ink */
   --fg-muted: 215 15% 42%;        /* #586577 Tech Slate */
   --fg-subtle: 215 12% 62%;       /* #8e9aa8 */
-  
+
   --accent: 212 90% 45%;          /* #0969da Terminal Blue */
   --accent-amber: 32 95% 44%;     /* #d97706 Technical Amber */
   --accent-green: 140 70% 35%;    /* #1a7f37 Technical Green */
   --accent-cyan: 195 85% 38%;     /* #0284c7 Technical Cyan */
   --accent-red: 355 80% 50%;      /* #cf222e Coral Red */
-  
+
   --code-bg: 215 20% 93%;         /* #e8edf3 Technical Code Surface */
   --dot-color: rgba(9, 105, 218, 0.05);
 
@@ -652,6 +652,101 @@ html.mode-gui #btn-mode-gui {
 
 .term-success {
   color: hsl(var(--accent-green));
+}
+
+.term-empty,
+.term-list-count,
+.term-file-permissions,
+.term-file-owner,
+.term-file-date,
+.term-file-comment {
+  color: hsl(var(--fg-subtle));
+}
+
+.term-list-count {
+  margin-bottom: 4px;
+}
+
+.term-file-size,
+.term-amber {
+  color: hsl(var(--accent-amber));
+}
+
+.term-file-comment {
+  font-size: 0.75rem;
+}
+
+.term-http-status {
+  color: hsl(var(--accent-green));
+  font-size: 0.75rem;
+  margin-bottom: 8px;
+}
+
+.term-article-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+  font-size: 0.8rem;
+}
+
+.term-article-link,
+.term-about-link {
+  color: hsl(var(--accent));
+  text-decoration: underline;
+}
+
+.term-neofetch {
+  margin: 0;
+  color: hsl(var(--accent-cyan));
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.term-accent {
+  color: hsl(var(--accent));
+}
+
+.term-quote {
+  color: hsl(var(--accent-amber));
+  font-style: italic;
+}
+
+.term-matrix-line {
+  color: #00f08c;
+  font-family: monospace;
+  font-size: 0.72rem;
+  line-height: 1.1;
+  opacity: 0.85;
+}
+
+.term-matrix-end {
+  margin-top: 6px;
+  color: hsl(var(--accent));
+}
+
+.term-tree {
+  margin: 0;
+  color: hsl(var(--accent-cyan));
+}
+
+.term-tag-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.term-about {
+  line-height: 1.6;
+}
+
+.term-about-description {
+  margin-top: 4px;
+  color: hsl(var(--fg-muted));
+}
+
+.term-about-link-wrap {
+  margin-top: 6px;
 }
 
 /* -------------------------------------------------------------
@@ -1365,6 +1460,10 @@ html.mode-gui #btn-mode-gui {
   transition: all var(--duration-fast) ease;
 }
 
+.post-nav-card-next {
+  text-align: right;
+}
+
 .post-nav-card:hover {
   border-color: hsl(var(--accent));
   background: hsl(var(--surface-hover));
@@ -1417,6 +1516,10 @@ html.mode-gui #btn-mode-gui {
   margin-bottom: var(--space-6);
 }
 
+.man-section-last {
+  margin-bottom: 0;
+}
+
 .man-title {
   font-family: var(--font-mono);
   font-size: var(--text-xs);
@@ -1462,6 +1565,13 @@ html.mode-gui #btn-mode-gui {
   color: hsl(var(--fg-muted));
   line-height: 1.6;
   margin: 0;
+}
+
+.system-environment-card {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  line-height: 1.7;
+  color: hsl(var(--fg-muted));
 }
 
 /* -------------------------------------------------------------
@@ -1519,19 +1629,19 @@ html.mode-gui #btn-mode-gui {
   :root {
     --space-page-x: 1rem;
   }
-  
+
   .site-header {
     margin-bottom: var(--space-5);
   }
-  
+
   .console-body {
     padding: var(--space-4);
   }
-  
+
   .post-card {
     padding: var(--space-4);
   }
-  
+
   .site-footer {
     flex-direction: column;
     gap: var(--space-3);
@@ -1545,4 +1655,3 @@ html.mode-gui #btn-mode-gui {
     transition-duration: 0.01ms !important;
   }
 }
-
